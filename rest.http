@@ -1,0 +1,101 @@
+### Users Table
+GET http://localhost:3000/users
+
+
+### Registeration
+POST http://localhost:3000/users/register
+Content-Type: application/json
+
+{
+    "name": "tejaswi kurapati",
+    "email": "tejaswikurapati88@gmail.com",
+    "password": "tejaswi@Teja123"
+}
+###
+<!--{
+    "name": "Parnika Bala",
+    "email": "parnikaneeli@gmail.com",
+    "password": "Parni@Teja123"
+}-->
+
+### Signin User
+POST http://localhost:3000/users/signin
+Content-Type: application/json
+
+{
+    "email": "tejaswikurapati88@gmail.com",
+    "password": "tejaswi@Teja123"
+}
+
+###
+
+<!--{
+    "email": "parnikaneeli@gmail.com",
+    "password": "Parni@Teja123"
+}-->
+###
+
+DELETE http://localhost:3000/users/deleteuser/2
+
+###
+GET http://localhost:3000/plans
+
+###
+
+GET http://localhost:3000/api/userpayment
+###
+
+POST http://localhost:3000/userPayment/paymentDetails1
+Content-Type: application/json
+
+{
+    "email": "parnikaneeli@gmail.com",
+    "planId": 1,
+    "billingCycle": "half year", 
+    "paymentMethod": "upi",
+    "upiId" : "14789526@frgr"
+}
+###
+
+POST http://localhost:3000/userPayment/paymentDetails1
+Content-Type: application/json
+
+{
+    "email": "parnikaneeli@gmail.com",
+    "planId": 1,
+    "billingCycle": "half year", 
+    "paymentMethod": "upi",
+    "cardNum" : "14789526@frgr",
+    "cardExpiryDate": "2025-02-01"
+}
+
+###
+POST http://localhost:3000/userPayment/paymentDetails
+Content-Type: application/json
+
+{
+    "fullName" : "Tejaswi",
+    "cardNumber": "12432546987521",
+    "expirationDate":"2027-12-12",
+    "country":"India",
+    "state": "Telangana",
+    "city": "Mahabubabad",
+    "addressLine1": "2-2B Shivashankar cloth store",
+    "addressLine2": "Bus stand road",
+    "postalCode": 101505,
+    "billingCycle": "Annually",
+    "termsAccepted": false,
+    "planId": 1
+}
+###
+
+DELETE http://localhost:3000/userPayment/deleteuserpatment
+
+###
+GET http://localhost:3000/api/stocks
+
+###Companys_socks_list
+GET http://localhost:3000/api/compstock/1
+
+###
+GET http://localhost:3000/api/nifty500/1
