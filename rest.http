@@ -1,5 +1,5 @@
 ### Users Table
-GET http://localhost:3000/users/
+GET http://localhost:3000/users
 
 
 ### Registeration
@@ -7,32 +7,79 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
+    "name": "tejaswi kurapati",
+    "email": "tejaswikurapati88@gmail.com",
+    "password": "tejaswi@Teja123"
+}
+###
+<!--{
     "name": "Parnika Bala",
     "email": "parnikaneeli@gmail.com",
     "password": "Parni@Teja123"
-}
+}-->
 
 ### Signin User
-POST http://localhost:3000/api/signin
+POST http://localhost:3000/users/signin
+Content-Type: application/json
+
+{
+    "email": "tejaswikurapati88@gmail.com",
+    "password": "tejaswi@Teja123"
+}
+
+###
+
+<!--{
+    "email": "parnikaneeli@gmail.com",
+    "password": "Parni@Teja123"
+}-->
+###
+
+DELETE http://localhost:3000/users/deleteuser/2
+
+###
+GET http://localhost:3000/plans
+
+###
+GET http://localhost:3000/stocks
+
+###
+
+GET http://localhost:3000/userPayment/
+###
+
+POST http://localhost:3000/userPayment/paymentDetails1
 Content-Type: application/json
 
 {
     "email": "parnikaneeli@gmail.com",
-    "password": "Parni@Teja123"
+    "planId": 1,
+    "billingCycle": "half year", 
+    "paymentMethod": "upi",
+    "upiId" : "14789526@frgr"
 }
 ###
 
-GET http://localhost:3000/api/userpayment
-###
+POST http://localhost:3000/userPayment/paymentDetails1
+Content-Type: application/json
 
-POST http://localhost:3000/api/user/payment
+{
+    "email": "parnikaneeli@gmail.com",
+    "planId": 1,
+    "billingCycle": "half year", 
+    "paymentMethod": "upi",
+    "cardNum" : "14789526@frgr",
+    "cardExpiryDate": "2025-02-01"
+}
+
+###
+POST http://localhost:3000/userPayment/paymentDetails
 Content-Type: application/json
 
 {
     "fullName" : "Tejaswi",
     "cardNumber": "12432546987521",
     "expirationDate":"2027-12-12",
-    "securityCode": "12ewrfwef2",
     "country":"India",
     "state": "Telangana",
     "city": "Mahabubabad",
@@ -45,13 +92,19 @@ Content-Type: application/json
 }
 ###
 
-DELETE http://localhost:3000/api/deleteuserpatment/
+DELETE http://localhost:3000/userPayment/deleteuserpatment
 
-###
-GET http://localhost:3000/api/stocks
+### Comp stocks
+GET http://localhost:3000/stocks/compstock
 
-###Companys_socks_list
-GET http://localhost:3000/api/compstock
+###Companys_socks_list with pagination
+GET http://localhost:3000/stocks/compstock/1
 
-###
-GET http://localhost:3000/api/nifty500
+### Nifty500
+GET http://localhost:3000/stocks/nifty500/1
+
+### Nifty100 from company_stock_list
+GET http://localhost:3000/stocks/nifty100
+
+### Dummy stocks list
+GET http://localhost:3000/stocks/dummycompstocks
