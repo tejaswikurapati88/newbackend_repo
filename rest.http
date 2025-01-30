@@ -41,8 +41,11 @@ DELETE http://localhost:3000/users/deleteuser/2
 GET http://localhost:3000/plans
 
 ###
+GET http://localhost:3000/stocks
 
-GET http://localhost:3000/api/userpayment
+###
+
+GET http://localhost:3000/userPayment/
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
@@ -91,11 +94,17 @@ Content-Type: application/json
 
 DELETE http://localhost:3000/userPayment/deleteuserpatment
 
-###
-GET http://localhost:3000/api/stocks
+### Comp stocks
+GET http://localhost:3000/stocks/compstock
 
-###Companys_socks_list
-GET http://localhost:3000/api/compstock/1
+###Companys_socks_list with pagination
+GET http://localhost:3000/stocks/compstock/1
 
-###
-GET http://localhost:3000/api/nifty500/1
+### Nifty500
+GET http://localhost:3000/stocks/nifty500/1
+
+### Nifty100 from company_stock_list
+GET http://localhost:3000/stocks/nifty100
+
+### Dummy stocks list
+GET http://localhost:3000/stocks/dummycompstocks

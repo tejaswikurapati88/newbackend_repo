@@ -7,6 +7,7 @@ const dbPool = require('./Controllers/dbPool')
 const userRouter = require('./Routes/userRoutes')
 const plansRouter= require('./Routes/plansRoutes')
 const paymentRouter= require('./Routes/paymentRoutes')
+const stocksRouter= require('./Routes/stocksRoutes')
 
 const app= express()
 
@@ -53,49 +54,8 @@ app.use('/plans', plansRouter)
 
 app.use('/userPayment',paymentRouter)
 
-app.get('/api/userpayment', async (req, res)=>{
-    try{
-        if (!dbPool){
-            return res.status(500).json({ error: 'Database connection is not established' });
-        }
-        const selectQuery = 'SELECT * FROM user_payment_details';
-        const [users] = await dbPool.query(selectQuery); 
-        res.json(users);
-    }catch(error){
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
+app.use('/stocks', stocksRouter)
 
-app.get('/api/stocks', async (req, res)=>{
-    try{
-        if (!dbPool){
-            return res.status(500).json({error: 'Database connection is not established'})
-        }
-        const stocksQuery=`select * from stocks;`;
-        const [stocks] = await dbPool.query(stocksQuery)
-        res.status(200).json(stocks);
-    }catch(e){
-        console.error('Error fetching users:', e);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
-
-app.get('/api/compstock/:pagenum/', async (req, res)=>{
-    try{
-        if (!dbPool){
-            return res.status(500).json({error: 'Database connection is not established'})
-        }
-        const {pagenum}= req.params
-        const offset= (pagenum * 10) -10
-        const stockslistQuery=`select * from comapanies_stocks_list limit 10 offset ${offset};`;
-        const [stockslist] = await dbPool.query(stockslistQuery)
-        res.status(200).json(stockslist);
-    }catch(e){
-        console.error('Error fetching users:', e);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
 
 app.get('/api/nifty500/:pagenum/', async (req, res)=>{
     try{

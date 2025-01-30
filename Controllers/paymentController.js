@@ -85,8 +85,23 @@ const deleteUserPayment = async (req, res)=>{
     }
 }
 
+const getUser= async (req, res)=>{
+    try{
+        if (!dbPool){
+            return res.status(500).json({ error: 'Database connection is not established' });
+        }
+        const selectQuery = 'SELECT * FROM user_payment_details';
+        const [users] = await dbPool.query(selectQuery); 
+        res.json(users);
+    }catch(error){
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 module.exports= {
     addUserPayment,
     deleteUserPayment,
-    addUserPaymentNew
+    addUserPaymentNew,
+    getUser
 }

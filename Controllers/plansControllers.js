@@ -7,7 +7,7 @@ const getplans=async (req, res)=>{
         }
         const selectQuery = 'SELECT * FROM subscription_plan';
         const [plans] = await dbPool.query(selectQuery); 
-        res.json(plans);
+        res.status(200).json(plans);
     }catch(error){
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Internal Server Error' });
