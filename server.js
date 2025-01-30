@@ -24,10 +24,7 @@ app.use((err, req, res, next) => {
     }
     next();
 });
-app.use(cors({
-    origin: 'http://localhost:3001',  // Allow requests from this origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
-  }));
+
 
 const PORT = 3000;
 
