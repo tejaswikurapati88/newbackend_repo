@@ -11,15 +11,9 @@ const stockScreenerRouter = require('./Routes/stockScreenerRoute')
 const paymentRouter = require('./Routes/paymentRoutes')
 const stocksRouter = require('./Routes/stocksRoutes')
 const planRouter = require('./Routes/plansRoutes')
-const paymentRouter = require('./Routes/paymentRoutes')
-const stocksRouter = require('./Routes/stocksRoutes')
-const planRouter = require('./Routes/plansRoutes')
 
 const app = express()
-const app = express()
 
-// Middleware
-app.use(bodyParser.json());
 // Middleware
 app.use(bodyParser.json());
 app.use(express.json())
@@ -41,13 +35,8 @@ const PORT = 3000;
 app.use('/users', userRouter)
 
 app.use('/userPayment', paymentRouter)
-app.use('/userPayment', paymentRouter)
 
 app.use('/stocksScreener', stockScreenerRouter)
-
-app.use('/stocks', stocksRouter)
-
-app.use('/plan', planRouter)
 
 app.use('/stocks', stocksRouter)
 
