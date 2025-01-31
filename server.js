@@ -1,10 +1,8 @@
 const express= require('express')
-const mysql = require('mysql2/promise');
 const cors= require('cors')
-const bcrypt= require('bcrypt')
-const jwt= require('jsonwebtoken')
 require('dotenv').config()
 const bodyParser = require('body-parser');
+const dbPool= require('./Controllers/dbPool')
 
 const userRouter = require('./Routes/userRoutes')
 const stockScreenerRouter = require('./Routes/stockScreenerRoute')
@@ -59,19 +57,3 @@ connectAndStartServer()
 
 //Routers
 
-
-app.get('/api/nifty500/:pagenum/', async (req, res)=>{
-    try{
-        if (!dbPool){
-            return res.status(500).json({error: 'Database connection is not established'})
-        }
-        const {pagenum}= req.params
-        const offset= (pagenum*10)- 10;
-        const niftyQuery=`select * from Nifty500_Company_List Limit 10 offset ${offset} ;`;
-        const [nifty500] = await dbPool.query(niftyQuery)
-        res.status(200).json(nifty500);
-    }catch(e){
-        console.error('Error fetching users:', e);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})

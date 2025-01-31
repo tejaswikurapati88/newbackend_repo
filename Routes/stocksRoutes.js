@@ -1,6 +1,14 @@
 const express= require('express')
 const router = express.Router()
-const { getstocks, getcompstocks, getcompstockswithpage, getnifty500comp, getnifty100, getdummycompstocks }= require("../Controllers/stocksController")
+const { getstocks, 
+    getcompstocks, 
+    getcompstockswithpage, 
+    getnifty500comp, 
+    getnifty100, 
+    getdummycompstocks, 
+    getsmallCapCompanies ,
+    getmidCapCompanies
+}= require("../Controllers/stocksController")
 
 // get Plans Table 
 router.get('/', getstocks)
@@ -19,5 +27,11 @@ router.get('/nifty100', getnifty100)
 
 //get dummy comp stocks list
 router.get('/dummycompstocks', getdummycompstocks)
+
+// get small cap companies stocks 
+router.get('/smallcap', getsmallCapCompanies)
+
+// get mid cap companies stocks
+router.get('/midcap', getmidCapCompanies)
 
 module.exports= router
