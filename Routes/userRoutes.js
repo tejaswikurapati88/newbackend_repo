@@ -1,6 +1,6 @@
 const express = require('express')
 
-const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, deleteUser} = require("../Controllers/userController")
+const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn} = require("../Controllers/userController")
 
 const router = express.Router()
 
@@ -12,11 +12,13 @@ router.post('/register', createUser)
 // Login user
 router.post('/signin', userSignin)
 
+//login using signin button
+
+router.post('/auth/google', GoogleSignIn)
+
 router.get('/verifyEmail', verifyEmail)
 
 router.post('/reVerifyMail', resendVerificationEmail)
-
-router.delete('/deleteuser/:userId', deleteUser)
 
 
 module.exports = router

@@ -2,10 +2,13 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const dbPool = require('./dbPool');
-const jwt= require('jsonwebtoken')
-const { use } = require('../Routes/paymentRoutes');
-const { error } = require('console');
 require('dotenv').config()
+const bodyParser = require('body-parser');
+const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken')
+
+
+
 
 // get Users Table 
 const getusers = async (req, res)=>{
@@ -26,6 +29,7 @@ const getusers = async (req, res)=>{
 const createUser =  async (req, res)=>{
     try{
         const { name, email, password}= req.body
+        console.log(req.body)
         if (!dbPool){
             return res.status(500).json({error: "Database connection is not established" });
         }
@@ -47,7 +51,7 @@ const createUser =  async (req, res)=>{
                     VALUES (?, ?, ?, ?, ?, false, NOW());
                 `;
                 const test = await dbPool.query(insertQuery, [name, email, hashedPass, verificationToken, tokenExpiry]);
-                
+                console.log(test)
                 // Send the verification email
                 const transporter = nodemailer.createTransport({
                     service: 'Gmail', // Email service
@@ -112,6 +116,7 @@ const userSignin = async (req, res)=>{
                         email: user.email,
                       };
                     const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+                    
                     res.status(200).json({jwtToken: token})
                 }else{
                     res.status(400).json({message: "InCorrect Password. Please try again!"})
@@ -188,7 +193,7 @@ const resendVerificationEmail = async (req, res) => {
         const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const updateQuery = `
-            UPDATE users
+            UPDATE userstable
             SET verificationToken = ?, tokenExpiry = ?
             WHERE id = ?;
         `;
@@ -231,6 +236,64 @@ const resendVerificationEmail = async (req, res) => {
     }
 };
 
+// Replace with your Google Client ID
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+const client = new OAuth2Client(CLIENT_ID);
+
+const GoogleSignIn = async (req, res) => {
+    const { token } = req.body;
+    console.log("Received Token:", token);
+
+    try {
+        // Decode token to check audience
+        const decodedToken = jwt.decode(token);
+        console.log("Decoded Token:", decodedToken);
+
+        if (!decodedToken) {
+            return res.status(400).json({ error: "Invalid token format" });
+        }
+
+        if (decodedToken.aud !== CLIENT_ID) {
+            return res.status(403).json({ error: "Token audience mismatch" });
+        }
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: CLIENT_ID, 
+        });
+
+        const payload = ticket.getPayload();
+        console.log("Verified Payload:", payload);
+        
+        // Extract user details
+        const { sub: userId, email, name, picture } = payload;
+
+        // Handling DB logic
+        if (!dbPool) {
+            return res.status(500).json({ error: "Database connection is not established" });
+        }
+
+        const findUserQuery = "SELECT * FROM userstable WHERE email = ?";
+        const [existingUser] = await dbPool.query(findUserQuery, [email]);
+
+        if (!existingUser || existingUser.length === 0) {
+            const insertUserQuery = "INSERT INTO userstable (email, name) VALUES (?, ?)";
+            await dbPool.query(insertUserQuery, [email, name]);
+            console.log("New user added to the Database");
+        } else {
+            return res.status(200).json("User already Exists");
+        }
+
+        res.status(200).json({
+            message: "Authentication successful",
+            user: { userId, email, name, picture },
+        });
+
+    } catch (error) {
+        console.error("Error verifying token:", error);
+        res.status(401).json({ message: "Authentication failed" });
+    }
+};
 const deleteUser= async (req, res)=>{
     try{
         if (!dbPool){
@@ -252,5 +315,6 @@ module.exports = {
     userSignin,
     verifyEmail,
     resendVerificationEmail,
+    GoogleSignIn,
     deleteUser
 }

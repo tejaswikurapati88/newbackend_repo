@@ -13,5 +13,4 @@ const dbCredentials={
 
 const dbPool = mysql.createPool(dbCredentials)
 
-
 module.exports = dbPool;
