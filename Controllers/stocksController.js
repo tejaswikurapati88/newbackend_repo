@@ -35,7 +35,7 @@ const getcompstockswithpage= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
-        const {pagenum}= req.params
+        const { pagenum = 1 }= req.params
         const offset= (pagenum * 10) -10
         const stockslistQuery=`select * from comapanies_stocks_list limit 10 offset ${offset};`;
         const [stockslist] = await dbPool.query(stockslistQuery)
@@ -51,7 +51,7 @@ const getnifty500comp= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
-        const {pagenum}= req.params
+        const { pagenum = 1 }= req.params
         const offset= (pagenum*10)- 10;
         const niftyQuery=`select * from Nifty500_Company_List Limit 10 offset ${offset} ;`;
         const [nifty500] = await dbPool.query(niftyQuery)

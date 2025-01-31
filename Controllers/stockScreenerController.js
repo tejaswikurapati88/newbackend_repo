@@ -52,7 +52,61 @@ const stockSector = async (req, res) => {
         const [stockslist] = await dbPool.query(stockslistQuery)
         res.status(200).json(stockslist);
     } catch(e){
-        console.error('Error fetching users:', e);
+        console.error('Error in fetching details :', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+const stockIndex = async (req, res) => {
+    try{
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
+        const stockslistQuery = `
+            SELECT 
+                company,
+                ltp_inr,
+                change_percent,
+                market_cap_cr,
+                High_52W_INR,
+                Low_52W_INR,
+                stock_index,
+                pe,
+                clarification
+            FROM dummy_stocks_list
+            ;
+        `;
+        const [stockslist] = await dbPool.query(stockslistQuery)
+        res.status(200).json(stockslist);
+    } catch(e){
+        console.error('Error in fetching details :', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+const stockCalender = async (req, res) => {
+    try{
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
+        const stockslistQuery = `
+            SELECT 
+                company,
+                ltp_inr,
+                change_percent,
+                market_cap_cr,
+                High_52W_INR,
+                Low_52W_INR,
+                event_date,
+                pe,
+                clarification
+            FROM dummy_stocks_list
+            ;
+        `;
+        const [stockslist] = await dbPool.query(stockslistQuery)
+        res.status(200).json(stockslist);
+    } catch(e){
+        console.error('Error in fetching details :', e);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
@@ -60,5 +114,7 @@ const stockSector = async (req, res) => {
 
 module.exports ={
     sectorAnalyst,
-    stockSector
+    stockSector,
+    stockIndex,
+    stockCalender
 }
