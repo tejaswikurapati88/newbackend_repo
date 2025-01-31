@@ -59,15 +59,6 @@ connectAndStartServer()
 
 //Routers
 
-app.use('/users', userRouter)
-
-app.use('/plans', plansRouter)
-
-
-app.use('/userPayment',paymentRouter)
-
-app.use('/stocks', stocksRouter)
-
 
 app.get('/api/nifty500/:pagenum/', async (req, res)=>{
     try{
