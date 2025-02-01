@@ -95,7 +95,20 @@ const getsmallCapCompanies= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
-        const stockslistQuery=`select * from comapanies_stocks_list where Market_cap_in_Lakh < 5000000000 limit 41;`;
+        const stockslistQuery=
+`select * from 
+
+(SELECT *,
+  CASE
+    WHEN Market_cap LIKE '%T' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000000
+    WHEN Market_cap LIKE '%B' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000
+    ELSE 0
+  END AS market_cap_in_crore
+FROM comapanies_stocks_list) as created_table
+
+where market_cap_in_crore < 5000000000
+order by market_cap_in_crore desc
+limit 100;`;
         const [stockslist] = await dbPool.query(stockslistQuery)
         res.status(200).json(stockslist);
     }catch(e){
@@ -109,7 +122,47 @@ const getmidCapCompanies= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
-        const stockslistQuery=`select * from comapanies_stocks_list where Market_cap_in_Lakh > 50000000000 and Market_cap_in_Lakh < 200000000000  limit 41;`;
+        const stockslistQuery=
+        `select * from 
+
+(SELECT *,
+  CASE
+    WHEN Market_cap LIKE '%T' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000000
+    WHEN Market_cap LIKE '%B' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000
+    ELSE 0
+  END AS market_cap_in_crore
+FROM comapanies_stocks_list) as created_table
+
+where market_cap_in_crore > 50000000000 and market_cap_in_crore < 200000000000
+order by market_cap_in_crore desc
+limit 100;`;
+        const [stockslist] = await dbPool.query(stockslistQuery)
+        res.status(200).json(stockslist);
+    }catch(e){
+        console.error('Error fetching users:', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+const getlargeCapCompanies= async (req, res)=>{
+    try{
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
+        const stockslistQuery=
+        `select * from 
+
+(SELECT *,
+  CASE
+    WHEN Market_cap LIKE '%T' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000000
+    WHEN Market_cap LIKE '%B' THEN CAST(SUBSTRING_INDEX(Market_cap, ' ', 1) AS DECIMAL(10,2)) * 1000000000
+    ELSE 0
+  END AS market_cap_in_crore
+FROM comapanies_stocks_list) as created_table
+
+where market_cap_in_crore > 200000000000
+order by market_cap_in_crore desc
+limit 100;`;
         const [stockslist] = await dbPool.query(stockslistQuery)
         res.status(200).json(stockslist);
     }catch(e){
@@ -126,5 +179,6 @@ module.exports={
     getnifty100,
     getdummycompstocks,
     getsmallCapCompanies,
-    getmidCapCompanies
+    getmidCapCompanies,
+    getlargeCapCompanies
 }

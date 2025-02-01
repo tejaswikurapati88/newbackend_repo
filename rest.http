@@ -109,6 +109,10 @@ GET http://localhost:3000/stocks/nifty100
 ### Dummy stocks list
 GET http://localhost:3000/stocks/dummycompstocks
 
+
+### Comp stocks
+GET http://localhost:3000/stocks/compstock
+
 ###
 GET http://localhost:3000/stocks/smallcap
 

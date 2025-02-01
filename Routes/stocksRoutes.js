@@ -7,7 +7,8 @@ const { getstocks,
     getnifty100, 
     getdummycompstocks, 
     getsmallCapCompanies ,
-    getmidCapCompanies
+    getmidCapCompanies,
+    getlargeCapCompanies
 }= require("../Controllers/stocksController")
 
 // get Plans Table 
@@ -33,5 +34,8 @@ router.get('/smallcap', getsmallCapCompanies)
 
 // get mid cap companies stocks
 router.get('/midcap', getmidCapCompanies)
+
+// get large cap companies stocks
+router.get('/largecap', getlargeCapCompanies)
 
 module.exports= router
