@@ -9,6 +9,7 @@ const stockScreenerRouter = require('./Routes/stockScreenerRoute')
 const paymentRouter = require('./Routes/paymentRoutes')
 const stocksRouter = require('./Routes/stocksRoutes')
 const planRouter = require('./Routes/plansRoutes')
+const userDetailsRouter= require('./Routes/userDetailsRoutes')
 
 const app = express()
 
@@ -39,6 +40,8 @@ app.use('/stocksScreener', stockScreenerRouter)
 app.use('/stocks', stocksRouter)
 
 app.use('/plan', planRouter)
+
+app.use('/userdetails', userDetailsRouter)
 
 
 const connectAndStartServer= async ()=>{

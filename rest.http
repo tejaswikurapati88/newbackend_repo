@@ -118,3 +118,26 @@ GET http://localhost:3000/stocks/smallcap
 
 ### mid cap company_stocks
 GET http://localhost:3000/stocks/midcap
+
+### large cap company_stocks 
+GET http://localhost:3000/stocks/largecap
+
+### add userDetails in my profile
+POST http://localhost:3000/userdetails/adduser
+Content-Type: application/json
+
+{
+    "firstName": "Tejaswi" ,
+    "lastName": "Kurapati",
+    "dob": "2001-12-12",
+    "gender": "Female",
+    "email": "tejaswikurapati88@gmail.com",
+    "phoneNumber": "9912000000",
+    "country": "India",
+    "state": "Telangana",
+    "city": "Mahabubabad",
+    "occupation": "Full-stack Developer",
+    "pincode": "506101" ,
+    "industry": "finance",
+    "income": "200000"
+  }
