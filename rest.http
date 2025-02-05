@@ -7,8 +7,8 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-    "name": "tejaswi kurapati",
-    "email": "tejaswikurapati88@gmail.com",
+    "name": "tejaswi ",
+    "email": "tejas@gmail.com",
     "password": "tejaswi@Teja123"
 }
 ###
@@ -123,7 +123,7 @@ GET http://localhost:3000/stocks/midcap
 GET http://localhost:3000/stocks/largecap
 
 ### add userDetails in my profile
-POST http://localhost:3000/userdetails/adduser
+PUT http://localhost:3000/userdetails/adduser
 Content-Type: application/json
 
 {
@@ -131,7 +131,7 @@ Content-Type: application/json
     "lastName": "Kurapati",
     "dob": "2001-12-12",
     "gender": "Female",
-    "email": "tejaswikurapati88@gmail.com",
+    "email": "tejas@gmail.com",
     "phoneNumber": "9912000000",
     "country": "India",
     "state": "Telangana",
@@ -139,5 +139,15 @@ Content-Type: application/json
     "occupation": "Full-stack Developer",
     "pincode": "506101" ,
     "industry": "finance",
-    "income": "200000"
-  }
+    "income": "200000",
+    "address": "Shiva Shankar cloth store, opposite Jio office",
+    "ageGroup": "25 - 35",
+    "username": "tejaswikurapati88"
+}
+
+### add profile image
+POST http://localhost:3000/userdetails/addprofileimage/1
+Content-type: application/json 
+
+### get user details
+GET http://localhost:3000/userdetails/

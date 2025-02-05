@@ -29,7 +29,7 @@ const getusers = async (req, res)=>{
 const createUser =  async (req, res)=>{
     try{
         const { name, email, password}= req.body
-        console.log(req.body)
+        
         if (!dbPool){
             return res.status(500).json({error: "Database connection is not established" });
         }
@@ -40,18 +40,22 @@ const createUser =  async (req, res)=>{
             if (userExists.length===0){
 
                 const verificationToken = crypto.randomBytes(32).toString('hex')
-                console.log(verificationToken)
+                
                 const verificationLink = `http://localhost:3000/users/verifyEmail?token=${verificationToken}`
                 const tokenExpiry = new Date(Date.now() + 24*60*60*1000)
 
                 const hashedPass= await bcrypt.hash(password, 10)
+                const username= email.split('@')[0]
 
                 const insertQuery = `
                     INSERT INTO userstable (name, email, password, verificationToken, tokenExpiry, isVerified, creation_date)
                     VALUES (?, ?, ?, ?, ?, false, NOW());
                 `;
+                const insertintouserDetails=`
+                    INSERT INTO user_details (email, username) Values (?, ?);
+                `
+                const insertuserDetails= await dbPool.query(insertintouserDetails, [email, username])
                 const test = await dbPool.query(insertQuery, [name, email, hashedPass, verificationToken, tokenExpiry]);
-                console.log(test)
                 // Send the verification email
                 const transporter = nodemailer.createTransport({
                     service: 'Gmail', // Email service
@@ -62,7 +66,7 @@ const createUser =  async (req, res)=>{
                 });
 
                 await transporter.sendMail({
-                    from: 'your-email@gmail.com',
+                    from: 'team@financeshastra.com',
                     to: email,
                     subject: 'Verify Your Email',
                     html: `

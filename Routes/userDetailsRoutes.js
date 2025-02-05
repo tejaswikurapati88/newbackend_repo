@@ -1,8 +1,9 @@
 const express= require('express')
 const router = express.Router()
-const { addUserDetails }= require("../Controllers/userDetailsController")
+const { addUserDetails, getUserDetails }= require("../Controllers/userDetailsController")
 
-// get Plans Table 
-router.post('/adduser', addUserDetails)
+// 
+router.put('/adduser', addUserDetails)
 
+router.get('/', getUserDetails)
 module.exports= router
