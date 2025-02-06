@@ -8,8 +8,6 @@ const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken')
 
 
-
-
 // get Users Table 
 const getusers = async (req, res)=>{
     try{
@@ -115,12 +113,12 @@ const userSignin = async (req, res)=>{
                 const compare= await bcrypt.compare(password, user[0].password)
                 if (compare){
                     const payload = {
-                        userId: user.id,
-                        name: user.name,
-                        email: user.email,
+                        userId: user[0].user_id,
+                        name: user[0].name,
+                        email: user[0].email,
                       };
+
                     const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
-                    
                     res.status(200).json({jwtToken: token})
                 }else{
                     res.status(400).json({message: "InCorrect Password. Please try again!"})
