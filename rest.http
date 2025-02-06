@@ -131,7 +131,7 @@ Content-Type: application/json
     "lastName": "Kurapati",
     "dob": "2001-12-12",
     "gender": "Female",
-    "email": "tejas@gmail.com",
+    "email": "tejaswik@gmail.com",
     "phoneNumber": "9912000000",
     "country": "India",
     "state": "Telangana",
@@ -151,3 +151,8 @@ Content-type: application/json
 
 ### get user details
 GET http://localhost:3000/userdetails/
+
+###
+GET http://localhost:3000/myportfolio/dashboard
+
+###
