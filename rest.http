@@ -150,7 +150,8 @@ POST http://localhost:3000/userdetails/addprofileimage/1
 Content-type: application/json 
 
 ### get user details
-GET http://localhost:3000/userdetails/
+GET http://localhost:3000/userdetails/?email=tejaswik@gmail.com
+
 
 ###
 GET http://localhost:3000/myportfolio/dashboard
