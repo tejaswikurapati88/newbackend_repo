@@ -13,6 +13,9 @@ const addUserDetails =  async (req, res)=>{
                 console.log('fill all details')
             return res.status(400).json({message: "All the details should be provided"})
         }else{
+            const usertablequery= `select * from userstable where email = '${email}'`
+            const [usertable] = await dbPool.query(usertablequery)
+            const user_idtable= (usertable[0].user_id)
             const updateQuery = `
             UPDATE user_details 
             SET first_name = '${firstName}',
@@ -28,7 +31,9 @@ const addUserDetails =  async (req, res)=>{
             industry = '${industry}',
             address = '${address}',
             age_group = '${ageGroup}',
-            income = '${income}'
+            income = '${income}',
+            user_id= ${user_idtable},
+            updated_date= NOW()
 
             where email = '${email}';
             `
@@ -43,7 +48,11 @@ const addUserDetails =  async (req, res)=>{
 
 const getUserDetails= async (req, res)=>{
     try{
-        const getQuery=`SELECT * from user_details;`
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
+        const email= req.query.email
+        const getQuery=`SELECT * from user_details where email = '${email}';`
         const [userdetails]= await dbPool.query(getQuery)
         res.status(200).json(userdetails)
     }catch(e){
