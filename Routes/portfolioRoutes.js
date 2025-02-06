@@ -5,6 +5,7 @@ const { getPortfolioSummary, addStockToPortfolio } = require('../Controllers/por
 
 router.get('/dashboard', getPortfolioSummary )
 
+router.post('/addStock', addStockToPortfolio)
 
 
 module.exports = router
