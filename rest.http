@@ -7,16 +7,17 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-    "name": "tejaswi ",
-    "email": "tejas@gmail.com",
-    "password": "tejaswi@Teja123"
-}
-###
-<!--{
     "name": "Parnika Bala",
     "email": "parnikaneeli@gmail.com",
     "password": "Parni@Teja123"
+}
+###
+<!--{
+    "name": "tejaswi ",
+    "email": "tejaswiku@gmail.com",
+    "password": "tejaswi@Teja123"
 }-->
+
 
 ### Signin User
 POST http://localhost:3000/users/signin
@@ -150,7 +151,7 @@ POST http://localhost:3000/userdetails/addprofileimage/1
 Content-type: application/json 
 
 ### get user details
-GET http://localhost:3000/userdetails/?email=tejaswik@gmail.com
+GET http://localhost:3000/userdetails?email=tejaswik@gmail.com
 
 
 ###
