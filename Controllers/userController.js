@@ -51,8 +51,12 @@ const createUser =  async (req, res)=>{
                 `;
                 const insertintouserDetails=`
                     INSERT INTO user_details (email, username, created_date) Values (?, ?, NOW());
-                `
-                await dbPool.query(insertintouserDetails, [email, username])
+                `;
+                const insertintouserInvestment=`
+                    Insert INTO user_investment_details (username, created_date) Values (?, NOW());
+                `;
+                await dbPool.query(insertintouserInvestment, [username]);
+                await dbPool.query(insertintouserDetails, [email, username]);
                 await dbPool.query(insertQuery, [name, email, hashedPass, verificationToken, tokenExpiry]);
                 // Send the verification email
                 const transporter = nodemailer.createTransport({
