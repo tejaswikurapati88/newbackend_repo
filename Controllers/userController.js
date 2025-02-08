@@ -158,18 +158,24 @@ const verifyEmail = async (req, res) => {
 
         // Check token expiry
         if (new Date(userDetails.tokenExpiry) < Date.now()) {
-            return res.status(400).json({ message: "Verification token has expired." });
-        }
-
-        // Update user as verified
-        const updateQuery = `
+            const query=`
+            Delete * from  userstable where user_id = ?;
+            `;
+            await dbPool.query(query, [userDetails.user_id]);
+            res.status(200).json({ message: "unverified user deleted" });
+        }else{
+            const updateQuery = `
             UPDATE userstable 
             SET isVerified = 1, verificationToken = NULL, tokenExpiry = NULL 
             WHERE user_id = ?;
-        `;
-        await dbPool.query(updateQuery, [userDetails.user_id]);
+            `;
+            await dbPool.query(updateQuery, [userDetails.user_id]);
 
-        res.status(200).json({ message: "Email verified successfully!" });
+            res.status(200).json({ message: "Email verified successfully!" });
+        }
+
+        // Update user as verified
+        
     } catch (error) {
         res.status(500).json({ error: "Internal Server Error", details: error.message });
     }

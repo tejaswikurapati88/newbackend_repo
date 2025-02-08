@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const dbPool = require('./dbPool');
+const jwt = require('jsonwebtoken');
 
 const addUserDetails =  async (req, res)=>{
     try{
@@ -61,4 +62,37 @@ const getUserDetails= async (req, res)=>{
     }
 }
 
-module.exports={addUserDetails, getUserDetails}
+const updateUserInvestment=async (req, res)=>{
+    try{
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
+        const token = req.headers.authorization?.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+        const userId = (decoded.userId)
+        const username = (decoded.email)
+        const {householdSavaings,
+                termInsurence,
+                healthInsurence,
+                currentInvestments}= req.body
+            const updateQuery = `
+                UPDATE user_investment_details 
+                SET 
+                user_id = ${userId}
+                household_savings = '${householdSavaings}',
+                term_insurance = '${termInsurence}',
+                health_insurance = '${healthInsurence}',
+                current_investments = '${currentInvestments}',
+                updated_date= NOW()
+                where username = ${username};
+                `
+            await dbPool.query(updateQuery)
+            res.status(200).json({ message: 'User investment details updated successfully' });
+        
+    }catch(e){
+        console.error('Error fetching users:', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+module.exports={addUserDetails, getUserDetails, updateUserInvestment}

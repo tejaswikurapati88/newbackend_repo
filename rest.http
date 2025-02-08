@@ -7,12 +7,18 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
+    "name": "Deepak Shinde",
+    "email": "deep.shinde199914@gmail.com",
+    "password": "shinde@Teja123"
+}
+
+###
+<!--{
     "name": "Parnika Bala",
     "email": "parnikaneeli@gmail.com",
     "password": "Parni@Teja123"
 }
-###
-<!--{
+{
     "name": "tejaswi ",
     "email": "tejaswiku@gmail.com",
     "password": "tejaswi@Teja123"
@@ -37,19 +43,29 @@ Content-Type: application/json
 ###
 
 DELETE http://localhost:3000/users/deleteuser/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ###
 GET http://localhost:3000/plans
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
+
 
 ###
 GET http://localhost:3000/stocks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ###
 
 GET http://localhost:3000/userPayment/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 Content-Type: application/json
 
 {
@@ -62,6 +78,7 @@ Content-Type: application/json
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 Content-Type: application/json
 
 {
@@ -75,6 +92,7 @@ Content-Type: application/json
 
 ###
 POST http://localhost:3000/userPayment/paymentDetails
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 Content-Type: application/json
 
 {
@@ -94,45 +112,66 @@ Content-Type: application/json
 ###
 
 DELETE http://localhost:3000/userPayment/deleteuserpatment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### Comp stocks
 GET http://localhost:3000/stocks/compstock
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ###Companys_socks_list with pagination
 GET http://localhost:3000/stocks/compstock/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### Nifty500
 GET http://localhost:3000/stocks/nifty500/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### Nifty100 from company_stock_list
 GET http://localhost:3000/stocks/nifty100
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### Dummy stocks list
 GET http://localhost:3000/stocks/dummycompstocks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 
 ### Comp stocks
 GET http://localhost:3000/stocks/compstock
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ###
 GET http://localhost:3000/stocks/smallcap
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### mid cap company_stocks
 GET http://localhost:3000/stocks/midcap
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### large cap company_stocks 
 GET http://localhost:3000/stocks/largecap
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ### add userDetails in my profile
 PUT http://localhost:3000/userdetails/adduser
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 Content-Type: application/json
 
 {
-    "firstName": "Tejaswi" ,
-    "lastName": "Kurapati",
+    "firstName": "Parnika Bala" ,
+    "lastName": "Neeli",
     "dob": "2001-12-12",
     "gender": "Female",
-    "email": "tejaswik@gmail.com",
+    "email": "parnikaneeli@gmail.com",
     "phoneNumber": "9912000000",
     "country": "India",
     "state": "Telangana",
@@ -146,15 +185,52 @@ Content-Type: application/json
     "username": "tejaswikurapati88"
 }
 
-### add profile image
-POST http://localhost:3000/userdetails/addprofileimage/1
-Content-type: application/json 
+### Update user_investment
+PUT http://localhost:3000/userdetails/adduserinvestment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+Content-Type: application/json
+
+{
+    "householdSavaings": "589641584",
+    "termInsurence": "548523153",
+    "healthInsurence" : "2145600",
+    "currentInvestments": "6698"
+}
 
 ### get user details
 GET http://localhost:3000/userdetails?email=tejaswik@gmail.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 
 ###
 GET http://localhost:3000/myportfolio/dashboard
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+
 
 ###
+
+POST http://localhost:3000/qanda
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+Content-Type: application/json
+
+{
+    "age_range": "Agree",
+    "income_range": "DisAgree",
+    "invest_percentage_range": "11-12",
+    "equity_portfolio_size": "10",
+    "high_returns_high_risk_investment": "Agree",
+    "major_exp_time_range": "10-11",
+    "dependents": "2",
+    "stress": "disagree",
+    "car_insurence": "agree",
+    "fear": "disagree",
+    "risky_investments": "agree",
+    "max_loss_prepared1": "frgbetwea",
+    "willingToRisk_forGoodReturns": "dgrt4qe",
+    "max_loss_prepared2": "rgthyj6y35w",
+    "uncertainty": "grhyju",
+    "philosophy": "fwghjuk",
+    "botheredBy_things": "fgrthyju",
+    "risk_taker": "fwgthyju"
+}
