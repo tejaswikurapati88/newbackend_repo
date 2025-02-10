@@ -3,6 +3,7 @@ const cors= require('cors')
 require('dotenv').config()
 const bodyParser = require('body-parser');
 const dbPool= require('./Controllers/dbPool')
+const jwt = require('jsonwebtoken')
 
 const userRouter = require('./Routes/userRoutes')
 const stockScreenerRouter = require('./Routes/stockScreenerRoute')
@@ -11,6 +12,7 @@ const stocksRouter = require('./Routes/stocksRoutes')
 const planRouter = require('./Routes/plansRoutes')
 const userDetailsRouter= require('./Routes/userDetailsRoutes')
 const portfolioRouter = require('./Routes/portfolioRoutes')
+const riskAnalysisRouter= require('./Routes/riskAnalysisRoutes')
 
 const app = express()
 
@@ -46,6 +48,8 @@ app.use('/userdetails', userDetailsRouter)
 
 app.use('/myportfolio', portfolioRouter)
 
+app.use('/riskanalysis', riskAnalysisRouter)
+
 
 const connectAndStartServer= async ()=>{
     try{
@@ -61,79 +65,4 @@ const connectAndStartServer= async ()=>{
 
 connectAndStartServer()
 
-app.post('/qanda', async (req, res)=>{
-    try{
-        if (!dbPool){
-            return res.status(500).json({error: 'Database connection is not established'})
-        }
-        const {age_range,
-            income_range,
-            invest_percentage_range,
-            equity_portfolio_size,
-            high_returns_high_risk_investment,
-            major_exp_time_range,
-            dependents,
-            stress,
-            car_insurence,
-            fear,
-            risky_investments,
-            max_loss_prepared1,
-            willingToRisk_forGoodReturns,
-            max_loss_prepared2,
-            uncertainty,
-            philosophy,
-            botheredBy_things,
-            risk_taker}= req.body
-        /*if (fullName === ""|| cardNumber==="" || expirationDate=== ""|| country=== ""||
-            state === ""|| city==="" || addressLine1=== "" || addressLine2==="" || postalCode=== "" || billingCycle===''
-            || termsAccepted==="" || planId===""){
-                console.log('fill all details')
-            return res.status(400).json({message: "All the details should be provided"})
-        }else{*/
-            
-            const insertQuery = `INSERT INTO risk_analysis (age_range,
-            income_range,
-            invest_percentage_range,
-            equity_portfolio_size,
-            high_returns_high_risk_investment,
-            major_exp_time_range,
-            dependents,
-            stress,
-            car_insurence,
-            fear,
-            risky_investments,
-            max_loss_prepared1,
-            willingToRisk_forGoodReturns,
-            max_loss_prepared2,
-            uncertainty,
-            philosophy,
-            botheredBy_things,
-            risk_taker, answered_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, NOW());`;
-            await dbPool.query(insertQuery, [age_range,
-                income_range,
-                invest_percentage_range,
-                equity_portfolio_size,
-                high_returns_high_risk_investment,
-                major_exp_time_range,
-                dependents,
-                stress,
-                car_insurence,
-                fear,
-                risky_investments,
-                max_loss_prepared1,
-                willingToRisk_forGoodReturns,
-                max_loss_prepared2,
-                uncertainty,
-                philosophy,
-                botheredBy_things,
-                risk_taker])
-            res.status(200).json({ message: 'User risk analysis added successfully' });
-        //}
-    }catch (error){
-                console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
-
-//Routers
 

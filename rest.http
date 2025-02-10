@@ -7,18 +7,12 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-    "name": "Deepak Shinde",
-    "email": "deep.shinde199914@gmail.com",
-    "password": "shinde@Teja123"
-}
-
-###
-<!--{
     "name": "Parnika Bala",
     "email": "parnikaneeli@gmail.com",
     "password": "Parni@Teja123"
 }
-{
+###
+<!--{
     "name": "tejaswi ",
     "email": "tejaswiku@gmail.com",
     "password": "tejaswi@Teja123"
@@ -210,8 +204,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuY
 
 ###
 
-POST http://localhost:3000/qanda
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+POST http://localhost:3000/riskanalysis/qanda
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MTY4MjgxLCJleHAiOjE3MzkxNzE4ODF9.LgjENsQ-NqwpwOJC_XBVAi6k6Bz7cRLbzZI8Dn7i1Yg
 Content-Type: application/json
 
 {
@@ -226,9 +220,39 @@ Content-Type: application/json
     "car_insurence": "agree",
     "fear": "disagree",
     "risky_investments": "agree",
-    "max_loss_prepared1": "frgbetwea",
+    "max_pro_loss_prepared": "frgbetwea",
     "willingToRisk_forGoodReturns": "dgrt4qe",
-    "max_loss_prepared2": "rgthyj6y35w",
+    "max_loss_prepared": "rgthyj6y35w",
+    "uncertainty": "grhyju",
+    "philosophy": "fwghjuk",
+    "botheredBy_things": "fgrthyju",
+    "risk_taker": "fwgthyju"
+}
+
+### get risk analysis
+GET http://localhost:3000/riskanalysis
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJuYW1lIjoidGVqYXN3aSBrdXJhcGF0aSIsImVtYWlsIjoidGVqYXN3aWt1cmFwYXRpODhAZ21haWwuY29tIiwiaWF0IjoxNzM5MTY5NjcxLCJleHAiOjE3MzkxNzMyNzF9.aqiGVmgrsuGmKqCL1FmT89ZWrY6sRvwQlTrKxC9TXwg
+
+###
+PUT http://localhost:3000/riskanalysis/updaterisk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MTY4MjgxLCJleHAiOjE3MzkxNzE4ODF9.LgjENsQ-NqwpwOJC_XBVAi6k6Bz7cRLbzZI8Dn7i1Yg
+Content-Type: application/json
+
+{
+    "age_range": "Agree",
+    "income_range": "DisAgree",
+    "invest_percentage_range": "11-12",
+    "equity_portfolio_size": "10",
+    "high_returns_high_risk_investment": "Agree",
+    "major_exp_time_range": "10-11",
+    "dependents": "2",
+    "stress": "disagree",
+    "car_insurence": "agree",
+    "fear": "disagree",
+    "risky_investments": "agree",
+    "max_pro_loss_prepared": "frgbetwea",
+    "willingToRisk_forGoodReturns": "dgrt4qe",
+    "max_loss_prepared": "rgthyj6y35w",
     "uncertainty": "grhyju",
     "philosophy": "fwghjuk",
     "botheredBy_things": "fgrthyju",
