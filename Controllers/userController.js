@@ -39,7 +39,7 @@ const createUser =  async (req, res)=>{
 
                 const verificationToken = crypto.randomBytes(32).toString('hex')
                 
-                const verificationLink = `http://localhost:3000/users/verifyEmail?token=${verificationToken}`
+                const verificationLink = `${process.env.RENDER_URL}/users/verifyEmail?token=${verificationToken}`
                 const tokenExpiry = new Date(Date.now() + 24*60*60*1000)
 
                 const hashedPass= await bcrypt.hash(password, 10)
