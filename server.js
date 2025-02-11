@@ -4,6 +4,7 @@ require('dotenv').config()
 const bodyParser = require('body-parser');
 const dbPool= require('./Controllers/dbPool')
 const jwt = require('jsonwebtoken')
+const bcrypt= require('bcrypt')
 
 const userRouter = require('./Routes/userRoutes')
 const stockScreenerRouter = require('./Routes/stockScreenerRoute')

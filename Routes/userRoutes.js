@@ -1,6 +1,6 @@
 const express = require('express')
 
-const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn} = require("../Controllers/userController")
+const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn, changePass} = require("../Controllers/userController")
 
 const router = express.Router()
 
@@ -19,6 +19,8 @@ router.post('/auth/google', GoogleSignIn)
 router.get('/verifyEmail', verifyEmail)
 
 router.post('/reVerifyMail', resendVerificationEmail)
+
+router.put('/changepass', changePass)
 
 
 module.exports = router

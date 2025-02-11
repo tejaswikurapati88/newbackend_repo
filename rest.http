@@ -258,3 +258,14 @@ Content-Type: application/json
     "botheredBy_things": "fgrthyju",
     "risk_taker": "fwgthyju"
 }
+###
+
+PUT http://localhost:3000/users/changepass
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJuYW1lIjoidGVqYXN3aSBrdXJhcGF0aSIsImVtYWlsIjoidGVqYXN3aWt1cmFwYXRpODhAZ21haWwuY29tIiwiaWF0IjoxNzM5MjY3MTgzLCJleHAiOjE3MzkyNzA3ODN9.XNmhR6X11hfk2K1FncP951NXZ9i5x4wSm2z2UzGNviU
+Content-Type: application/json
+
+{
+    "currentPassword": "Parni@Teja123",
+    "newPassword": "parni@Teja123",
+    "confirmPassword": "parni@Teja123"
+}
