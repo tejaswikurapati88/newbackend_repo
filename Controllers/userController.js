@@ -342,8 +342,8 @@ const changePass= async (req, res)=>{
                     const updatequery=`
                     UPDATE userstable 
                     SET 
-                    password = '${hashednew_pass}
-                    Where user_id= ${userId}';
+                    password = '${hashednew_pass}'
+                    Where user_id= ${userId};
                     `;
                     await dbPool.query(updatequery)
                     res.status(200).json({message: "password updated Successfully!"})
