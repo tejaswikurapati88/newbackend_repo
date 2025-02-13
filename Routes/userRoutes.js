@@ -1,6 +1,6 @@
 const express = require('express')
 
-const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn, changePass} = require("../Controllers/userController")
+const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn, changePass, forgetPassword, resetPassword} = require("../Controllers/userController")
 
 const router = express.Router()
 
@@ -21,6 +21,11 @@ router.get('/verifyEmail', verifyEmail)
 router.post('/reVerifyMail', resendVerificationEmail)
 
 router.put('/changepass', changePass)
+
+//Forgot password routes
+router.post("/forget-password",forgetPassword);
+
+router.post("/reset-password/:token",resetPassword);
 
 
 module.exports = router
