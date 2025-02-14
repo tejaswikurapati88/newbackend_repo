@@ -14,6 +14,7 @@ const planRouter = require('./Routes/plansRoutes')
 const userDetailsRouter= require('./Routes/userDetailsRoutes')
 const portfolioRouter = require('./Routes/portfolioRoutes')
 const riskAnalysisRouter= require('./Routes/riskAnalysisRoutes')
+const ordersRouter = require('./Routes/ordersRoutes')
 
 const app = express()
 
@@ -51,6 +52,7 @@ app.use('/myportfolio', portfolioRouter)
 
 app.use('/riskanalysis', riskAnalysisRouter)
 
+app.use('/orders', ordersRouter)
 
 const connectAndStartServer= async ()=>{
     try{
@@ -63,6 +65,8 @@ const connectAndStartServer= async ()=>{
         process.exit(1)
     }
 }
+
+
 
 connectAndStartServer()
 
