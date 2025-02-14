@@ -59,7 +59,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuY
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUzLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5NDQxNDMxLCJleHAiOjE3Mzk0NDUwMzF9.wIimqG_E7ngJouQRzNU1051uuVYmk7S9XAJLIdudokU
 Content-Type: application/json
 
 {
@@ -72,14 +72,13 @@ Content-Type: application/json
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 Content-Type: application/json
 
 {
     "email": "parnikaneeli@gmail.com",
     "planId": 1,
     "billingCycle": "half year", 
-    "paymentMethod": "upi",
+    "paymentMethod": "card",
     "cardNum" : "14789526@frgr",
     "cardExpiryDate": "2025-02-01"
 }
@@ -261,11 +260,11 @@ Content-Type: application/json
 ###
 
 PUT http://localhost:3000/users/changepass
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJuYW1lIjoidGVqYXN3aSBrdXJhcGF0aSIsImVtYWlsIjoidGVqYXN3aWt1cmFwYXRpODhAZ21haWwuY29tIiwiaWF0IjoxNzM5MjY3MTgzLCJleHAiOjE3MzkyNzA3ODN9.XNmhR6X11hfk2K1FncP951NXZ9i5x4wSm2z2UzGNviU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUzLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5NDE2Nzc3LCJleHAiOjE3Mzk0MjAzNzd9.vXyh4T45NFwr0zLjsYqMgs30PC37btvFUFFEjRK6ksg
 Content-Type: application/json
 
 {
-    "currentPassword": "Parni@Teja123",
+    "currentPassword": "parni@Teja123",
     "newPassword": "parni@Teja123",
     "confirmPassword": "parni@Teja123"
 }
