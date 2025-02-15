@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
-const dbPool = require('./dbPool')
+const dbPool = require('./dbPool');
+const jwt = require('jsonwebtoken');
+
 
 const addUserPayment = async (req, res)=>{
     try{
@@ -37,6 +39,9 @@ const addUserPaymentNew= async(req, res)=>{
         }
         const { email, planId, billingCycle, initailDate, paymentMethod, cardNum, cardExpiryDate, upiId}
         = req.body
+        const token = req.headers.authorization?.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+        const user_Id = (decoded.userId)
         if (email === ""|| planId==="" || billingCycle=== ""|| initailDate=== ""||
             paymentMethod === ""){
                 console.log('fill all details')
@@ -53,6 +58,28 @@ const addUserPaymentNew= async(req, res)=>{
         const userquery= `Select user_id from userstable where email = '${email}';`
         const [user] = await dbPool.query(userquery)
         const userId= user[0].user_id 
+        let order_name
+        let Amount
+        const status= 'completed'
+        if (planId===1){
+            order_name=`Elite ${billingCycle}`
+            if (billingCycle === "half year"){
+                Amount = '1,999'
+            }else{
+                Amount= '2,999'
+            }
+        }else if (planId ===2){
+            order_name=`Premium ${billingCycle}`
+            if (billingCycle === "half year"){
+                Amount = '5,999'
+            }else{
+                Amount= '7,999'
+            }
+        }
+        const orders_date= new Date()
+        const formattedDate = `${orders_date.getFullYear()}-${orders_date.getMonth() + 1}-${orders_date.getDate()} ${orders_date.getHours()}:${orders_date.getMinutes()}:${orders_date.getSeconds()}`;
+        const ordersQuery = `INSERT INTO orders (order_name, order_date, Amount, Status, user_id) values (?, ?, ?, ?, ?) ;`
+        await dbPool.query(ordersQuery, [order_name, formattedDate, Amount, status, user_Id])
         if (paymentMethod==='card'){
             const insertQuery = 'INSERT INTO users_payment_details (user_id, email, plan_id, billing_cycle, payment_date_time, initail_date, ending_date, payment_method, card_num, card_expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
         await dbPool.query(insertQuery, [userId, email, planId, 
