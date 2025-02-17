@@ -405,6 +405,7 @@ const allocationChart = async (req, res) => {
             const assetQuery = `
                 SELECT 
                     h.type,
+                    SUM(mh.amount) AS fund_investment,
                     SUM(h.amount) AS stock_investment
                 FROM 
                     userstable u
@@ -412,6 +413,8 @@ const allocationChart = async (req, res) => {
                     portfolios p ON u.user_id = p.user_id
                 JOIN 
                     holdings h ON p.portfolio_id = h.portfolio_id
+                JOIN 
+                    mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
                 WHERE 
                     u.user_id = ?
                 GROUP 
@@ -420,7 +423,6 @@ const allocationChart = async (req, res) => {
             `;
     
             const [summaryResult] = await dbPool.query(assetQuery, [decoded.userId]);
-    
             res.status(200).json(summaryResult);
         } catch (error) {
             console.error('Error in fetching portfolio summary:', error);
@@ -431,6 +433,138 @@ const allocationChart = async (req, res) => {
     }
 };
 
+const portfolioStocks = async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        // Verify token
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        if (!dbPool) {
+            await connection.rollback();
+            return res.status(500).json({ error: 'Database connection is not established' });
+        }
+
+        console.log(decoded);
+
+        const portfolioStocksQuery = `
+        SELECT 
+            h.stock_name,
+            SUM(h.buy_quantity) AS total_quantity,
+            SUM(h.amount) AS stock_investment,
+            ROUND(SUM((h.buy_quantity * h.buy_price) - h.amount), 2) AS unrealized_gain,
+            ROUND(SUM((COALESCE(h.sell_quantity, 0) * COALESCE(h.sell_price, 0)) - 
+                      (COALESCE(h.sell_quantity, 0) * COALESCE(h.buy_price, 0))), 2) AS realized_gain
+        FROM 
+            userstable u
+        JOIN 
+            portfolios p ON u.user_id = p.user_id
+        JOIN 
+            holdings h ON p.portfolio_id = h.portfolio_id
+        WHERE 
+            u.user_id = ?
+        GROUP BY 
+            h.stock_name;
+        `;
+
+        const [stocks] = await connection.query(portfolioStocksQuery, [decoded.userId]);
+
+        if (!stocks || stocks.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Portfolio is empty' });
+        } 
+
+        await connection.commit(); 
+        res.status(200).json(stocks);
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error fetching portfolio stocks:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        connection.release(); 
+    }
+};
+
+
+const stocksTransaction = async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Verify token
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+
+        if (!dbPool) {
+            await connection.rollback();
+            return res.status(500).json({ error: 'Database connection is not established' });
+        }
+
+        console.log(decoded);
+
+        const portfolioStocksQuery = `
+        SELECT 
+            h.type,
+            h.stock_name,
+            h.exchange,
+            h.date,
+            h.buy_quantity,
+            h.buy_price,
+            h.sell_price,
+            h.sell_quantity,
+            h.amount,
+            h.net_amount,
+            h.total_charges
+        FROM 
+            userstable u
+        JOIN 
+            portfolios p ON u.user_id = p.user_id
+        JOIN 
+            holdings h ON p.portfolio_id = h.portfolio_id
+        WHERE 
+            u.user_id = ?;
+        `;
+
+        const [stocks] = await connection.query(portfolioStocksQuery, [decoded.userId]);
+
+        if (!stocks || stocks.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Portfolio is empty' });
+        } 
+
+        await connection.commit();
+        res.status(200).json(stocks);
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error fetching portfolio stocks:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        connection.release();
+    }
+};
 
 
 
@@ -438,5 +572,7 @@ module.exports = {
     getPortfolioSummary,
     addStockToPortfolio,
     addmutualFundToPortfolio,
-    allocationChart
+    allocationChart, 
+    portfolioStocks,
+    stocksTransaction
 }
