@@ -1,7 +1,5 @@
 const dbPool = require("./dbPool");
 
-<<<<<<< HEAD
-=======
 const searchFunction = async (req, res) => {
   try {
     const { key } = req.params;
@@ -99,7 +97,6 @@ const searchFunctionWithOtherSuggestion = async (req, res) => {
 };
 
 //route for sending all data for redux store
->>>>>>> 4c973eba271efbba0f17af5e29c88b33ba1ea6f0
 const getAllData = async (req, res) => {
   try {
     const [stockRows] = await dbPool.query(`SELECT * FROM dummy_stocks_list`);
