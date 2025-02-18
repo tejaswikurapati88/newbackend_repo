@@ -111,51 +111,47 @@ const createUser = async (req, res) => {
   }
 };
 
-const userSignin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log(req.body);
-    if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
-    }
-    if (email === "") {
-      return res.status(400).json({ message: "Please enter Email Address" });
-    } else if (password === "") {
-      return res.status(400).json({ message: "Please enter Password" });
-    } else {
-      const isRegUser = `Select * from userstable where email = ?;`;
-      const [user] = await dbPool.query(isRegUser, [email]);
-      if (user.length === 0) {
-        res.status(404).json({ message: "Invalid User. Please SignUp!" });
-      } else {
-        const compare = await bcrypt.compare(password, user[0].password);
-        if (compare) {
-          const payload = {
-            userId: user[0].user_id,
-            name: user[0].name,
-            email: user[0].email,
-          };
-
-          const token = jwt.sign(payload, process.env.SECRET_KEY, {
-            expiresIn: "1h",
-          });
-          res.status(200).json({ jwtToken: token });
-        } else {
-          res
-            .status(400)
-            .json({ message: "InCorrect Password. Please try again!" });
+const userSignin = async (req, res)=>{
+    try{
+        const {email, password}= req.body 
+        console.log(req.body)
+        if (!dbPool){
+            return res.status(500).json({error: "Database connection is not established" })
         }
-      }
+        if (email ===""){
+            return res.status(400).json({ message: "Please enter Email Address"})
+        }else if(password=== ''){
+            return res.status(400).json({ message: "Please enter Password" })
+        }else{
+            const isRegUser= `select * from userstable WHERE email = ?;`
+            const [user]= await dbPool.query(isRegUser, [email])
+            console.log(user[0])
+            if (user.length === 0){
+                res.status(404).json({message: "Invalid User. Please SignUp!"})
+            }else if(user[0].isVerified === 0){
+                res.status(401).json({message: "Unverified User. Please Check your mail!"})
+            }else{
+                const compare= await bcrypt.compare(password, user[0].password)
+                if (compare){
+                    const payload = {
+                        userId: user[0].user_id,
+                        name: user[0].name,
+                        email: user[0].email,
+                      };
+
+                    const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+                    res.status(200).json({jwtToken: token})
+                }else{
+                    res.status(400).json({message: "InCorrect Password. Please try again!"})
+                }
+                
+            }
+        }
+    }catch(error){
+        console.error("Error in /user/signin:", error);
+        res.status(500).json({error: "Internal Server Error", details: error.message})
     }
-  } catch (error) {
-    console.error("Error in /api/signin:", error);
-    res
-      .status(500)
-      .json({ error: "Internal Server Error", details: error.message });
-  }
-};
+}
 
 const verifyEmail = async (req, res) => {
   try {

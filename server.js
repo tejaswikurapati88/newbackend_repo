@@ -15,7 +15,11 @@ const userDetailsRouter = require("./Routes/userDetailsRoutes");
 const portfolioRouter = require("./Routes/portfolioRoutes");
 const riskAnalysisRouter = require("./Routes/riskAnalysisRoutes");
 const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
+<<<<<<< HEAD
 const searchRouter = require("./Routes/searchRoutes");
+=======
+const searchRouter = require('./Routes/searchRoutes')
+>>>>>>> 4c973eba271efbba0f17af5e29c88b33ba1ea6f0
 
 const app = express();
 
@@ -56,6 +60,9 @@ app.use("/myportfolio", portfolioRouter);
 app.use("/riskanalysis", riskAnalysisRouter);
 
 app.use("/mutualFunds", mutualFundsRouter);
+
+app.use('/search', searchRouter)
+
 
 const connectAndStartServer = async () => {
   try {
