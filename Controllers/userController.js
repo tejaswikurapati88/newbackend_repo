@@ -446,7 +446,7 @@ const forgetPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset Request",
-      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/reset-password${token}`,
+      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/reset-password/${token}`,
     };
 
     await transporter.sendMail(receiver);
@@ -487,12 +487,13 @@ const resetPassword = async (req, res) => {
     }
 
     const newHashPassword = await bcrypt.hash(password, 10);
+    const updatedAt = new Date();
 
     //update the user password
-    await dbPool.query(`UPDATE userstable SET password = ? WHERE email = ?`, [
-      newHashPassword,
-      decode.email,
-    ]);
+    await dbPool.query(
+      `UPDATE userstable SET password = ?,passwordUpdatedDate = ? WHERE email = ?`,
+      [newHashPassword, updatedAt, decode.email]
+    );
 
     return res.status(200).json({
       message: "Password reset successfully",

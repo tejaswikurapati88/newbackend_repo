@@ -15,6 +15,7 @@ const userDetailsRouter = require("./Routes/userDetailsRoutes");
 const portfolioRouter = require("./Routes/portfolioRoutes");
 const riskAnalysisRouter = require("./Routes/riskAnalysisRoutes");
 const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
+const searchRouter = require("./Routes/searchRoutes");
 
 const app = express();
 
@@ -45,6 +46,8 @@ app.use("/stocksScreener", stockScreenerRouter);
 app.use("/stocks", stocksRouter);
 
 app.use("/plan", planRouter);
+
+app.use("/search", searchRouter);
 
 app.use("/userdetails", userDetailsRouter);
 
