@@ -6,6 +6,7 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
+const getDeviceInfo = require("../Middlewares/deviceTracker");
 
 // get Users Table
 const getusers = async (req, res) => {
@@ -23,6 +24,8 @@ const getusers = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 // Insert user into table
 const createUser = async (req, res) => {
@@ -111,47 +114,182 @@ const createUser = async (req, res) => {
   }
 };
 
-const userSignin = async (req, res)=>{
-    try{
-        const {email, password}= req.body 
-        console.log(req.body)
-        if (!dbPool){
-            return res.status(500).json({error: "Database connection is not established" })
-        }
-        if (email ===""){
-            return res.status(400).json({ message: "Please enter Email Address"})
-        }else if(password=== ''){
-            return res.status(400).json({ message: "Please enter Password" })
-        }else{
-            const isRegUser= `select * from userstable WHERE email = ?;`
-            const [user]= await dbPool.query(isRegUser, [email])
-            console.log(user[0])
-            if (user.length === 0){
-                res.status(404).json({message: "Invalid User. Please SignUp!"})
-            }else if(user[0].isVerified === 0){
-                res.status(401).json({message: "Unverified User. Please Check your mail!"})
-            }else{
-                const compare= await bcrypt.compare(password, user[0].password)
-                if (compare){
-                    const payload = {
-                        userId: user[0].user_id,
-                        name: user[0].name,
-                        email: user[0].email,
-                      };
+//--------------------------------------------------------------------------------------------------------------------
 
-                    const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "12h" });
-                    res.status(200).json({jwtToken: token})
-                }else{
-                    res.status(400).json({message: "InCorrect Password. Please try again!"})
-                }
-                
-            }
-        }
-    }catch(error){
-        console.error("Error in /user/signin:", error);
-        res.status(500).json({error: "Internal Server Error", details: error.message})
+const userSignin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Basic validations...
+    if (!email)
+      return res.status(400).json({ message: "Please enter Email Address" });
+    if (!password)
+      return res.status(400).json({ message: "Please enter Password" });
+
+    // Query the user
+    const isRegUser = `SELECT * FROM userstable WHERE email = ?;`;
+    const [user] = await dbPool.query(isRegUser, [email]);
+
+    if (user.length === 0) {
+      return res.status(404).json({ message: "Invalid User. Please SignUp!" });
     }
-}
+    if (user[0].isVerified === 0) {
+      return res
+        .status(401)
+        .json({ message: "Unverified User. Please check your mail!" });
+    }
+
+    // Verify password
+    const compare = await bcrypt.compare(password, user[0].password);
+    if (!compare) {
+      return res
+        .status(400)
+        .json({ message: "Incorrect Password. Please try again!" });
+    }
+
+    // Use deviceTracker middleware to get device info
+    const { userAgent, ipAddress, deviceName } = getDeviceInfo(req);
+    const loginTime = new Date();
+
+    // Insert device information into the database
+    const insertDeviceQuery = `
+      INSERT INTO user_devices (user_id, device_name, ip_address, user_agent,login_time)
+      VALUES (?, ?, ?, ?,?)
+    `;
+    await dbPool.query(insertDeviceQuery, [
+      user[0].user_id,
+      deviceName,
+      ipAddress,
+      userAgent,
+      loginTime,
+    ]);
+
+    // Generate JWT token
+    const payload = {
+      userId: user[0].user_id,
+      name: user[0].name,
+      email: user[0].email,
+    };
+    const token = jwt.sign(payload, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+
+    return res.status(200).json({
+      success: true,
+      user: user,
+      jwtToken: token,
+    });
+  } catch (error) {
+    console.error("Error in /user/signin:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
+  }
+};
+
+//--------------------------------------------------------------------------------------------------------------------
+
+//for getting loged device information
+const deviceInfo = async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Token missing or invalid" });
+  }
+
+  // extract the actual token
+  const token = authHeader.split(" ")[1];
+
+  try {
+    //decode the user id from token
+    const decode = jwt.verify(token, process.env.SECRET_KEY);
+    const userId = decode.userId;
+    const [devices] = await dbPool.query(
+      `SELECT device_id, device_name,is_active, ip_address, user_agent, login_time,logout_time FROM user_devices WHERE user_id = ? ORDER BY login_time DESC`,
+      [userId]
+    );
+
+    //response
+    res.status(200).json(devices);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching devices" });
+  }
+};
+
+//--------------------------------------------------------------------------------------------------------------------
+
+const endSession = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const { device_id } = req.body;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Token missing or invalid" });
+    }
+
+    // extract the actual token
+    const token = authHeader.split(" ")[1];
+
+    if (!device_id) {
+      return res.status(400).json({ message: "Missing userId or device_id" });
+    }
+
+    //decode the user id from token
+    const decode = jwt.verify(token, process.env.SECRET_KEY);
+    const userId = decode.userId;
+
+    const getISTTime = () => {
+      const date = new Date();
+      const istOffset = 5.5 * 60 * 60 * 1000;
+      return new Date(date.getTime() + istOffset);
+    };
+
+    const logoutTime = getISTTime();
+
+    // Format Date for Display (Indian Standard Time)
+    const formatDate = (date) => {
+      return date.toLocaleString("en-IN", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    };
+
+    const formattedTime = formatDate(logoutTime);
+
+    await dbPool.query(
+      `UPDATE user_devices 
+       SET logout_time = ?, is_active = FALSE 
+       WHERE user_id = ? AND device_id = ?`,
+      [
+        logoutTime.toISOString().slice(0, 19).replace("T", " "),
+        userId,
+        device_id,
+      ]
+    );
+
+    //response
+    return res.status(200).json({
+      success: true,
+      message: "Session Ended Successfully",
+      logoutTime: formattedTime,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error ending session" });
+  }
+};
+
+//--------------------------------------------------------------------------------------------------------------------
 
 const verifyEmail = async (req, res) => {
   try {
@@ -202,6 +340,8 @@ const verifyEmail = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 const resendVerificationEmail = async (req, res) => {
   try {
@@ -283,6 +423,8 @@ const resendVerificationEmail = async (req, res) => {
   }
 };
 
+//--------------------------------------------------------------------------------------------------------------------
+
 // Replace with your Google Client ID
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
@@ -343,6 +485,9 @@ const GoogleSignIn = async (req, res) => {
     res.status(401).json({ message: "Authentication failed" });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
+
 const deleteUser = async (req, res) => {
   try {
     if (!dbPool) {
@@ -360,6 +505,8 @@ const deleteUser = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 const changePass = async (req, res) => {
   try {
@@ -407,6 +554,8 @@ const changePass = async (req, res) => {
   }
 };
 
+//--------------------------------------------------------------------------------------------------------------------
+
 // forgot password controller
 const forgetPassword = async (req, res) => {
   try {
@@ -442,7 +591,7 @@ const forgetPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset Request",
-      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/reset-password${token}`,
+      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/reset-password/${token}`,
     };
 
     await transporter.sendMail(receiver);
@@ -456,6 +605,8 @@ const forgetPassword = async (req, res) => {
     res.status(500).json({ message: "Error to send link", error });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 //for reset password controller
 const resetPassword = async (req, res) => {
@@ -483,12 +634,13 @@ const resetPassword = async (req, res) => {
     }
 
     const newHashPassword = await bcrypt.hash(password, 10);
+    const updatedAt = new Date();
 
     //update the user password
-    await dbPool.query(`UPDATE userstable SET password = ? WHERE email = ?`, [
-      newHashPassword,
-      decode.email,
-    ]);
+    await dbPool.query(
+      `UPDATE userstable SET password = ?,passwordUpdatedDate = ? WHERE email = ?`,
+      [newHashPassword, updatedAt, decode.email]
+    );
 
     return res.status(200).json({
       message: "Password reset successfully",
@@ -510,4 +662,6 @@ module.exports = {
   changePass,
   forgetPassword,
   resetPassword,
+  deviceInfo,
+  endSession,
 };
