@@ -139,7 +139,7 @@ const userSignin = async (req, res)=>{
                         email: user[0].email,
                       };
 
-                    const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+                    const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "12h" });
                     res.status(200).json({jwtToken: token})
                 }else{
                     res.status(400).json({message: "InCorrect Password. Please try again!"})
