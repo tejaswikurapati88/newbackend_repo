@@ -403,21 +403,34 @@ const allocationChart = async (req, res) => {
     
             const assetQuery = `
                 SELECT 
-                    h.type,
-                    SUM(mh.amount) AS fund_investment,
-                    SUM(h.amount) AS stock_investment
-                FROM 
-                    userstable u
-                JOIN 
-                    portfolios p ON u.user_id = p.user_id
-                JOIN 
-                    holdings h ON p.portfolio_id = h.portfolio_id
-                JOIN 
-                    mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
-                WHERE 
-                    u.user_id = ?
-                GROUP 
-                    BY h.type;
+                    u.user_id,
+                    u.name,
+
+                    -- Investment Cost (Stocks + Mutual Funds)
+                    ROUND(SUM(h.amount), 2) AS stock_investment,
+                    ROUND(SUM(mh.amount), 2) AS mutualfund_investment,
+                    ROUND(SUM(h.amount) + SUM(mh.amount), 2) AS total_investment,
+
+                    -- Unrealized Gain (Stocks + Mutual Funds)
+                    ROUND(SUM((h.buy_quantity * h.buy_price) - h.amount), 2) AS unrealized_stock_gain,
+                    ROUND(SUM((mh.buy_quantity * mh.buy_price) - mh.amount), 2) AS unrealized_mutual_gain,
+
+                    -- Realized Gain (Stocks + Mutual Funds)
+                    ROUND(SUM((h.sell_quantity * h.sell_price) - (h.sell_quantity * h.buy_price)), 2) AS realized_stock_gain,
+                    ROUND(SUM((mh.sell_quantity * mh.sell_price) - (mh.sell_quantity * mh.buy_price)), 2) AS realized_mutual_gain,
+
+                    -- Latest Value (Stocks + Mutual Funds)
+                    ROUND(SUM(h.buy_quantity * h.buy_price), 2) AS latest_stock_value,
+                    ROUND(SUM(mh.buy_quantity * mh.buy_price), 2) AS latest_mutual_value
+
+                    FROM userstable u
+                    JOIN portfolios p ON u.user_id = p.user_id
+                    LEFT JOIN holdings h ON p.portfolio_id = h.portfolio_id
+                    LEFT JOIN mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
+
+                    WHERE u.user_id = '56' 
+
+                    GROUP BY u.user_id, u.name;
 
             `;
     

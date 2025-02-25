@@ -114,8 +114,6 @@ const createUser = async (req, res) => {
   }
 };
 
-//--------------------------------------------------------------------------------------------------------------------
-
 const userSignin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -171,14 +169,10 @@ const userSignin = async (req, res) => {
       email: user[0].email,
     };
     const token = jwt.sign(payload, process.env.SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: "12h",
     });
 
-    return res.status(200).json({
-      success: true,
-      user: user,
-      jwtToken: token,
-    });
+    return res.status(200).json({jwtToken: token});
   } catch (error) {
     console.error("Error in /user/signin:", error);
     return res
@@ -186,8 +180,6 @@ const userSignin = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
-
-//--------------------------------------------------------------------------------------------------------------------
 
 //for getting loged device information
 const deviceInfo = async (req, res) => {
