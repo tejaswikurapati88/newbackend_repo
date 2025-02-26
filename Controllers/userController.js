@@ -6,7 +6,7 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
-const getDeviceInfo = require("../Middlewares/deviceTracker");
+const getDeviceInfo = require("./deviceTracker");
 
 // get Users Table
 const getusers = async (req, res) => {
@@ -651,6 +651,150 @@ const resetPassword = async (req, res) => {
   }
 };
 
+//--------------------------------------------------------------------------------------------------------------------
+//function to generate referal code
+// const generateReferalCode = (name) => {
+//   const uniqueId = Date.now().toString(36);
+//   return `${name}-${uniqueId}`;
+// };
+
+//function to generate referal link
+// const generateReferralLink = async (referralCode) => {
+//   return `${process.env.CLIENT_URL}/register?referralCode=${referralCode}`;
+// };
+
+// const sendReferralEmail = async (req, res) => {
+//   try {
+//     const {
+//       referrerEmail,
+//       referrerName,
+//       recipientEmail,
+//       planType,
+//       referredName,
+//     } = req.body;
+
+//     const [rows] = await dbPool.query(
+//       `SELECT user_id FROM userstable WHERE email = ?`,
+//       [referrerEmail]
+//     );
+
+//     if (rows.length === 0) {
+//       return res.status(404).json({ message: "Referrer not found" });
+//     }
+
+//     const userId = rows[0].user_id;
+
+//     const [referalRows] = await dbPool.query(
+//       `SELECT referral_code FROM referrals WHERE user_id =?`,
+//       [userId]
+//     );
+
+//     let referralCode =
+//       referalRows.length > 0 ? referalRows[0].referral_code : null;
+
+//     if (!referralCode) {
+//       referralCode = generateReferalCode(referrerName.slice(0, 4));
+
+//       await dbPool.query(
+//         `INSERT INTO referrals (user_id, referral_code) VALUES (?, ?)
+//          ON DUPLICATE KEY UPDATE referral_code = referral_code`,
+//         [userId, referralCode]
+//       );
+//     }
+
+//     const referralLink = await generateReferralLink(referralCode);
+//     const planColumn = `${planType}_count`;
+
+//     //insert or update referral record
+//     await dbPool.query(
+//       `INSERT INTO referrals (user_id,referred_email,referred_name,${planColumn})
+//         VALUES (?,?,?,1)
+//         ON DUPLICATE KEY UPDATE ${planColumn} =${planColumn}+1
+//       `,
+//       [userId, recipientEmail, referredName]
+//     );
+
+//     //sending referral email
+//     const transporter = nodemailer.createTransport({
+//       service: "Gmail",
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       from: "team@financeshastra.com",
+//       to: recipientEmail,
+//       subject: "Join Finance Shastra with a Special Invitation!",
+//       html: `
+//        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+//           <h2>Hi ${referredName},</h2>
+//           <p>${referrerName} has invited you to join Finance Shastra! Use the link below to sign up and start enjoying exclusive benefits:</p>
+//           <p style="text-align: center;">
+//             <a href="${referralLink}"
+//                style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+//                Sign Up Now
+//             </a>
+//           </p>
+//           <p>If the button doesn't work, you can also sign up using the following link:</p>
+//           <p><a href="${referralLink}">${referralLink}</a></p>
+//           <p>Thanks,<br>Finance Shastra Team</p>
+//         </div>
+//       `,
+//     });
+
+//     //response
+//     res.status(200).json({
+//       success: true,
+//       message: "Referral email sent successfully",
+//     });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ error: "Internal Server Error", details: error.message });
+//   }
+// };
+
+//registeration with referal link
+// const registerReferedUser = async (req, res) => {
+//   try {
+//     const { referralCode, name, email, password, planType } = req.body;
+
+//     const findReferralQuery = `SELECT user_id FROM userstable WHERE referral_code =?`;
+//     const [results] = await dbPool.query(findReferralQuery, [referralCode]);
+
+//     if (results.length === 0) {
+//       return res.status(400).send("Invalid referral code");
+//     }
+
+//     const userId = results[0].user_id;
+//     const hashedPass = await bcrypt.hash(password, 10);
+
+//     const insertUserQuery =
+//       "INSERT INTO users (name, email, password, creation_date, isVerified) VALUES (?, ?, ?, NOW(), true)";
+
+//     await dbPool.query(insertUserQuery, [name, email, hashedPass]);
+
+//     const points = planType.includes("yearly") ? 100 : 50;
+//     const updatePointsQuery =
+//       "UPDATE users SET points = points + ? WHERE user_id = ?";
+//     await dbPool.query(updatePointsQuery, [points, userId]);
+
+//     // Response
+//     res.status(200).json({
+//       success: true,
+//       message: "New user successfully register and user points updated",
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({
+//       error: true,
+//       message: "Error to register user using register link",
+//     });
+//   }
+// };
+
 module.exports = {
   getusers,
   createUser,
@@ -664,4 +808,6 @@ module.exports = {
   resetPassword,
   deviceInfo,
   endSession,
+  // sendReferralEmail,
+  // registerReferedUser,
 };
