@@ -231,7 +231,6 @@ const addmutualFundToPortfolio = async (req, res) => {
 
         if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
 
-        // Extract required fields from request body
         const { type, scheme, nav_date, nav, amount, quantity, dividend = null, notes = null, sip_amount, sip_start_date,
             sip_end_date, frequency, no_of_installments } = req.body;
 
@@ -404,21 +403,34 @@ const allocationChart = async (req, res) => {
     
             const assetQuery = `
                 SELECT 
-                    h.type,
-                    SUM(mh.amount) AS fund_investment,
-                    SUM(h.amount) AS stock_investment
-                FROM 
-                    userstable u
-                JOIN 
-                    portfolios p ON u.user_id = p.user_id
-                JOIN 
-                    holdings h ON p.portfolio_id = h.portfolio_id
-                JOIN 
-                    mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
-                WHERE 
-                    u.user_id = ?
-                GROUP 
-                    BY h.type;
+                    u.user_id,
+                    u.name,
+
+                    -- Investment Cost (Stocks + Mutual Funds)
+                    ROUND(SUM(h.amount), 2) AS stock_investment,
+                    ROUND(SUM(mh.amount), 2) AS mutualfund_investment,
+                    ROUND(SUM(h.amount) + SUM(mh.amount), 2) AS total_investment,
+
+                    -- Unrealized Gain (Stocks + Mutual Funds)
+                    ROUND(SUM((h.buy_quantity * h.buy_price) - h.amount), 2) AS unrealized_stock_gain,
+                    ROUND(SUM((mh.buy_quantity * mh.buy_price) - mh.amount), 2) AS unrealized_mutual_gain,
+
+                    -- Realized Gain (Stocks + Mutual Funds)
+                    ROUND(SUM((h.sell_quantity * h.sell_price) - (h.sell_quantity * h.buy_price)), 2) AS realized_stock_gain,
+                    ROUND(SUM((mh.sell_quantity * mh.sell_price) - (mh.sell_quantity * mh.buy_price)), 2) AS realized_mutual_gain,
+
+                    -- Latest Value (Stocks + Mutual Funds)
+                    ROUND(SUM(h.buy_quantity * h.buy_price), 2) AS latest_stock_value,
+                    ROUND(SUM(mh.buy_quantity * mh.buy_price), 2) AS latest_mutual_value
+
+                    FROM userstable u
+                    JOIN portfolios p ON u.user_id = p.user_id
+                    LEFT JOIN holdings h ON p.portfolio_id = h.portfolio_id
+                    LEFT JOIN mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
+
+                    WHERE u.user_id = '56' 
+
+                    GROUP BY u.user_id, u.name;
 
             `;
     
@@ -566,6 +578,71 @@ const stocksTransaction = async (req, res) => {
     }
 };
 
+const mutualsTransaction = async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Verify token
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+
+        if (!dbPool) {
+            await connection.rollback();
+            return res.status(500).json({ error: 'Database connection is not established' });
+        }
+
+        console.log(decoded);
+
+        const portfolioStocksQuery = `
+        SELECT 
+            mh.type,
+            mh.scheme,
+            mh.nav_date,
+            mh.buy_quantity,
+            mh.buy_price,
+            mh.sell_price,
+            mh.sell_quantity,
+            mh.amount
+        FROM 
+            userstable u
+        JOIN 
+            portfolios p ON u.user_id = p.user_id
+        JOIN 
+            mutualfund_holdings mh ON p.portfolio_id = mh.portfolio_id
+        WHERE 
+            u.user_id = ?;
+        `;
+
+        const [stocks] = await connection.query(portfolioStocksQuery, [decoded.userId]);
+
+        if (!stocks || stocks.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Portfolio is empty' });
+        } 
+
+        await connection.commit();
+        res.status(200).json(stocks);
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error fetching portfolio stocks:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        connection.release();
+    }
+};
+
 
 
 module.exports = {
@@ -574,5 +651,6 @@ module.exports = {
     addmutualFundToPortfolio,
     allocationChart, 
     portfolioStocks,
-    stocksTransaction
+    stocksTransaction,
+    mutualsTransaction
 }

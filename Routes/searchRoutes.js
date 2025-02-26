@@ -11,6 +11,6 @@ const router = express.Router();
 //   .get(searchFunctionWithOtherSuggestion);
 
 //route for get all data from company and and mutual fund table
-router.route("/allInfo").get(getAllData);
+router.get("/allInfo", getAllData);
 
 module.exports = router;
