@@ -1,26 +1,53 @@
-const express = require('express')
+const express = require("express");
+const {
+  getusers,
+  createUser,
+  userSignin,
+  verifyEmail,
+  resendVerificationEmail,
+  GoogleSignIn,
+  changePass,
+  forgetPassword,
+  resetPassword,
+  deviceInfo,
+  endSession,
+  // sendReferralEmail,
+  // registerReferedUser,
+} = require("../Controllers/userController");
 
-const {getusers, createUser, userSignin, verifyEmail, resendVerificationEmail, GoogleSignIn, changePass} = require("../Controllers/userController")
+const router = express.Router();
 
-const router = express.Router()
-
-// get Users Table 
-router.get('/', getusers)
+// get Users Table
+router.get("/", getusers);
 //register user
-router.post('/register', createUser)
+router.post("/register", createUser);
 
 // Login user
-router.post('/signin', userSignin)
+router.post("/signin", userSignin);
+
+//route for getting device information
+router.get("/devices", deviceInfo);
+
+//route for referral
+// router.post("/send-referral-email", sendReferralEmail);
+// router.post("/register-referred-user", registerReferedUser);
+
+//route for end session
+router.post("/end-session", endSession);
 
 //login using signin button
 
-router.post('/auth/google', GoogleSignIn)
+router.post("/auth/google", GoogleSignIn);
 
-router.get('/verifyEmail', verifyEmail)
+router.get("/verifyEmail", verifyEmail);
 
-router.post('/reVerifyMail', resendVerificationEmail)
+router.post("/reVerifyMail", resendVerificationEmail);
 
-router.put('/changepass', changePass)
+router.put("/changepass", changePass);
 
+//Forgot password routes
+router.post("/forget-password", forgetPassword);
 
-module.exports = router
+router.put("/reset-password/:token", resetPassword);
+
+module.exports = router;
