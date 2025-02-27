@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 const dbPool= require('./Controllers/dbPool')
 const jwt = require('jsonwebtoken')
 const bcrypt= require('bcrypt')
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 
 const userRouter = require('./Routes/userRoutes')
 const stockScreenerRouter = require('./Routes/stockScreenerRoute')
@@ -15,6 +18,7 @@ const userDetailsRouter= require('./Routes/userDetailsRoutes')
 const portfolioRouter = require('./Routes/portfolioRoutes')
 const riskAnalysisRouter= require('./Routes/riskAnalysisRoutes')
 const ordersRouter = require('./Routes/ordersRoutes')
+const iconsRouter = require('./Routes/iconsRoutes')
 
 const app = express()
 
@@ -54,6 +58,20 @@ app.use('/riskanalysis', riskAnalysisRouter)
 
 app.use('/orders', ordersRouter)
 
+app.use('/icons', iconsRouter)
+
+app.use("/uploads", express.static("uploads"));
+
+const storage = multer.diskStorage({
+    destination: "./uploads/",
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+    },
+});
+
+const upload = multer({ storage: storage });
+
+
 const connectAndStartServer= async ()=>{
     try{
         console.log('Connected to the database!');
@@ -65,6 +83,34 @@ const connectAndStartServer= async ()=>{
         process.exit(1)
     }
 }
+
+app.post("/upload", upload.single("image"), async (req, res) => {
+  
+
+  try{
+    if (!dbPool){
+        return res.status(500).json({ error: 'Database connection is not established' });
+    }
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    
+
+  const token = req.headers.authorization?.split(' ')[1];
+  const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+  const email = (decoded.email)
+  console.log(email)
+
+  const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+
+  const sql = `update user_details set profile_image = ? where email = '${email}';`;
+  dbPool.query(sql, [imageUrl], (err, result) => {
+    if (err) throw err;
+    res.json({ message: "Image uploaded successfully", imageUrl });
+  });
+}catch(error){
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+}
+});
 
 
 

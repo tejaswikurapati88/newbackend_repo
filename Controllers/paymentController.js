@@ -60,7 +60,7 @@ const addUserPaymentNew= async(req, res)=>{
         const userId= user[0].user_id 
         let order_name
         let Amount
-        const status= 'completed'
+        const status= 'Completed'
         if (planId===1){
             order_name=`Elite ${billingCycle}`
             if (billingCycle === "half year"){

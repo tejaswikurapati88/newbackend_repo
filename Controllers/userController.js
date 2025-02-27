@@ -44,20 +44,23 @@ const createUser =  async (req, res)=>{
 
                 const hashedPass= await bcrypt.hash(password, 10)
                 const username= email.split('@')[0]
+                const datenow= new Date()
+                const formattedDate = `${datenow.getFullYear()}-${datenow.getMonth() + 1}-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
+
 
                 const insertQuery = `
                     INSERT INTO userstable (name, email, password, verificationToken, tokenExpiry, isVerified, creation_date)
-                    VALUES (?, ?, ?, ?, ?, false, NOW());
+                    VALUES (?, ?, ?, ?, ?, false, ?);
                 `;
                 const insertintouserDetails=`
-                    INSERT INTO user_details (email, username, created_date) Values (?, ?, NOW());
+                    INSERT INTO user_details (email, username, created_date) Values (?, ?, ?);
                 `;
                 const insertintouserInvestment=`
-                    Insert INTO user_investment_details (username, created_date) Values (?, NOW());
+                    Insert INTO user_investment_details (username, created_date) Values (?, ?);
                 `;
-                await dbPool.query(insertintouserInvestment, [username]);
-                await dbPool.query(insertintouserDetails, [email, username]);
-                await dbPool.query(insertQuery, [name, email, hashedPass, verificationToken, tokenExpiry]);
+                await dbPool.query(insertintouserInvestment, [username, formattedDate]);
+                await dbPool.query(insertintouserDetails, [email, username, formattedDate]);
+                await dbPool.query(insertQuery, [name, email, hashedPass, verificationToken, tokenExpiry, formattedDate]);
                 // Send the verification email
                 const transporter = nodemailer.createTransport({
                     service: 'Gmail', // Email service
@@ -101,6 +104,7 @@ const userSignin = async (req, res)=>{
     try{
         const {email, password}= req.body 
         console.log(req.body)
+        console.log(JSON.stringify(req.body))
         if (!dbPool){
             return res.status(500).json({error: "Database connection is not established" })
         }
@@ -337,12 +341,15 @@ const changePass= async (req, res)=>{
             const hashedpass= userpass[0].password
             const compare= await bcrypt.compare(currentPassword, hashedpass)
             if (compare){
+                const datenow= new Date()
+                const formattedDate = `${datenow.getFullYear()}-${datenow.getMonth() + 1}-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
                 if (newPassword === confirmPassword){
                     const hashednew_pass= await bcrypt.hash(newPassword, 10)
                     const updatequery=`
                     UPDATE userstable 
                     SET 
-                    password = '${hashednew_pass}'
+                    password = '${hashednew_pass}',
+                    passwordUpdatedDate = '${formattedDate}'
                     Where user_id= ${userId};
                     `;
                     await dbPool.query(updatequery)
