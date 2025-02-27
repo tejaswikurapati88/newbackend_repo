@@ -153,11 +153,11 @@ const deleteWatchlist = async (req, res) => {
 //------------------------------------------------------------------------------------------------------------------------
 
 const getWatchlist = async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized: No token provided" });
-    }
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'Unauthorized: No token provided' });
+        }
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     if (!dbPool) {
@@ -166,8 +166,8 @@ const getWatchlist = async (req, res) => {
         .json({ error: "Database connection is not established" });
     }
 
-    // Fetch watchlists and their items for the user
-    const query = `
+        // Fetch watchlists and their items for the user
+        const query = `
             SELECT 
                 w.watchlist_id, 
                 w.name AS watchlist_name, 
@@ -181,7 +181,7 @@ const getWatchlist = async (req, res) => {
             ORDER BY w.created_at DESC, wi.added_at DESC;
         `;
 
-    const [result] = await dbPool.query(query, [decoded.userId]);
+        const [result] = await dbPool.query(query, [decoded.userId]);
 
     // Organizing watchlists with their items
     const watchlists = {};
@@ -194,15 +194,15 @@ const getWatchlist = async (req, res) => {
         };
       }
 
-      if (row.item_id) {
-        watchlists[row.watchlist_id].items.push({
-          item_id: row.item_id,
-          asset_type: row.asset_type,
-          asset_symbol: row.asset_symbol,
-          added_at: row.added_at,
+            if (row.item_id) {
+                watchlists[row.watchlist_id].items.push({
+                    item_id: row.item_id,
+                    asset_type: row.asset_type,
+                    asset_symbol: row.asset_symbol,
+                    added_at: row.added_at
+                });
+            }
         });
-      }
-    });
 
     return res.status(200).json(Object.values(watchlists));
   } catch (error) {
@@ -235,7 +235,7 @@ const addToWatchlist = async (req, res) => {
         .json({ error: "Database connection is not established" });
     }
 
-    let { watchlist_id, asset_type, asset_symbol } = req.body;
+        let { watchlist_id, asset_type, asset_symbol } = req.body;
 
     // Validate required input fields
     if (!asset_type || !asset_symbol) {
@@ -256,29 +256,27 @@ const addToWatchlist = async (req, res) => {
         [userId]
       );
 
-      if (existingWatchlist.length > 0) {
-        watchlistId = existingWatchlist[0].watchlist_id;
-      } else {
-        // If no existing watchlist, create a default one
-        const [watchlistResult] = await dbPool.execute(
-          "INSERT INTO watchlists (user_id, name) VALUES (?, ?)",
-          [userId, "My Watchlist"]
-        );
-        watchlistId = watchlistResult.insertId;
-      }
-    } else {
-      // Ensure the watchlist belongs to the user
-      const [watchlistCheck] = await dbPool.execute(
-        "SELECT watchlist_id FROM watchlists WHERE watchlist_id = ? AND user_id = ?",
-        [watchlistId, userId]
-      );
+            if (existingWatchlist.length > 0) {
+                watchlistId = existingWatchlist[0].watchlist_id;
+            } else {
+                // If no existing watchlist, create a default one
+                const [watchlistResult] = await dbPool.execute(
+                    'INSERT INTO watchlists (user_id, name) VALUES (?, ?)',
+                    [userId, 'My Watchlist']
+                );
+                watchlistId = watchlistResult.insertId;
+            }
+        } else {
+            // Ensure the watchlist belongs to the user
+            const [watchlistCheck] = await dbPool.execute(
+                'SELECT watchlist_id FROM watchlists WHERE watchlist_id = ? AND user_id = ?',
+                [watchlistId, userId]
+            );
 
-      if (watchlistCheck.length === 0) {
-        return res.status(403).json({
-          error: "Unauthorized: Watchlist not found or does not belong to user",
-        });
-      }
-    }
+            if (watchlistCheck.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized: Watchlist not found or does not belong to user' });
+            }
+        }
 
     // Check if the asset is already in the watchlist (prevent duplicates)
     const [existingAsset] = await dbPool.execute(
@@ -314,10 +312,8 @@ const addToWatchlist = async (req, res) => {
   }
 };
 
+
 module.exports = {
-  getWatchlist,
-  addToWatchlist,
-  createNewWatchList,
-  renameExistingWatchlist,
-  deleteWatchlist,
-};
+    getWatchlist,
+    addToWatchlist
+}
