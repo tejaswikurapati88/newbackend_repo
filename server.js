@@ -1,19 +1,21 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
-const bodyParser = require("body-parser");
-const dbPool = require("./Controllers/dbPool");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const express= require('express')
+const cors= require('cors')
+require('dotenv').config()
+const bodyParser = require('body-parser');
+const dbPool= require('./Controllers/dbPool')
+const jwt = require('jsonwebtoken')
+const bcrypt= require('bcrypt')
 
-const userRouter = require("./Routes/userRoutes");
-const stockScreenerRouter = require("./Routes/stockScreenerRoute");
-const paymentRouter = require("./Routes/paymentRoutes");
-const stocksRouter = require("./Routes/stocksRoutes");
-const planRouter = require("./Routes/plansRoutes");
-const userDetailsRouter = require("./Routes/userDetailsRoutes");
-const portfolioRouter = require("./Routes/portfolioRoutes");
-const riskAnalysisRouter = require("./Routes/riskAnalysisRoutes");
+const userRouter = require('./Routes/userRoutes')
+const stockScreenerRouter = require('./Routes/stockScreenerRoute')
+const paymentRouter = require('./Routes/paymentRoutes')
+const stocksRouter = require('./Routes/stocksRoutes')
+const planRouter = require('./Routes/plansRoutes')
+const userDetailsRouter= require('./Routes/userDetailsRoutes')
+const portfolioRouter = require('./Routes/portfolioRoutes')
+const riskAnalysisRouter= require('./Routes/riskAnalysisRoutes')
+const ordersRouter = require('./Routes/ordersRoutes')
+const iconsRouter = require('./Routes/iconsRoutes')
 const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
 const searchRouter = require("./Routes/searchRoutes");
 const watchlistRouter = require("./Routes/watchListRoutes")
@@ -51,25 +53,35 @@ app.use("/plan", planRouter);
 app.use("/search", searchRouter);
 
 app.use("/userdetails", userDetailsRouter);
+app.use("/search", searchRouter);
 
 app.use("/myportfolio", portfolioRouter);
 
-app.use("/riskanalysis", riskAnalysisRouter);
+app.use('/riskanalysis', riskAnalysisRouter)
+app.use('/orders', ordersRouter)
 
+app.use('/icons', iconsRouter)
+
+app.use("/uploads", express.static("uploads"));
 app.use("/mutualFunds", mutualFundsRouter);
 
 app.use("/Watchlist", watchlistRouter);
 
-const connectAndStartServer = async () => {
-  try {
-    console.log("Connected to the database!");
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.log("Error While Connecting:", err);
-    process.exit(1);
-  }
-};
+
+
+
+const connectAndStartServer= async ()=>{
+    try{
+        console.log('Connected to the database!');
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+    }catch(err){
+        console.log('Error While Connecting:', err)
+        process.exit(1)
+    }
+}
+
+
 
 connectAndStartServer();

@@ -9,6 +9,10 @@ const dbCredentials={
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 25060,
     ssl: { rejectUnauthorized: false },
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    connectTimeout: 10000
 }
 
 const dbPool = mysql.createPool(dbCredentials)

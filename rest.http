@@ -8,15 +8,19 @@ Content-Type: application/json
 
 {
     "name": "Parnika Bala",
-    "email": "parnikaneeli@gmail.com",
+    "email": "parnineeli@gmail.com",
     "password": "Parni@Teja123"
 }
+
+
 ###
 <!--{
-    "name": "tejaswi ",
-    "email": "tejaswiku@gmail.com",
+    "name": "Tejaswi Kurapati",
+    "email": "tejaswikurapti88@gmail.com",
     "password": "tejaswi@Teja123"
 }-->
+###
+
 
 
 ### Signin User
@@ -41,7 +45,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuY
 
 
 ###
-GET http://localhost:3000/plans
+GET http://localhost:3000/plan
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 
 
@@ -72,6 +76,7 @@ Content-Type: application/json
 ###
 
 POST http://localhost:3000/userPayment/paymentDetails1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUzLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5NDQxNDMxLCJleHAiOjE3Mzk0NDUwMzF9.wIimqG_E7ngJouQRzNU1051uuVYmk7S9XAJLIdudokU
 Content-Type: application/json
 
 {
@@ -268,3 +273,13 @@ Content-Type: application/json
     "newPassword": "parni@Teja123",
     "confirmPassword": "parni@Teja123"
 }
+
+###
+GET http://localhost:3000/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUzLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5NTg2OTk2LCJleHAiOjE3Mzk1OTA1OTZ9.3ntCS7Ze_nsS5uU2dKhrlir1rL3bHx4bBSW7O_k84yw
+
+###
+
+GET http://localhost:3000/icons
+
+###
