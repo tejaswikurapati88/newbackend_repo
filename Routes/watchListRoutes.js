@@ -1,11 +1,26 @@
 const express = require("express");
 
-const {getWatchlist, addToWatchlist} = require('../Controllers/watchListController')
+const {
+  getWatchlist,
+  addToWatchlist,
+  createNewWatchList,
+  renameExistingWatchlist,
+  deleteWatchlist,
+} = require("../Controllers/watchListController");
 
-const router = express.Router()
+const router = express.Router();
 
-router.get('/', getWatchlist)
+//route for create new watchlist
+router.post("/CreateWatchList", createNewWatchList);
 
-router.get('/addStockToWatchklist', addToWatchlist)
+//route for rename existing watchlist
+router.put("/renameWatchlist", renameExistingWatchlist);
+
+//route for delete watchlist
+router.delete("/deleteWatchlist", deleteWatchlist);
+
+router.get("/", getWatchlist);
+
+router.get("/addStockToWatchklist", addToWatchlist);
 
 module.exports = router;

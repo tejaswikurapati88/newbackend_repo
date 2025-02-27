@@ -315,5 +315,8 @@ const addToWatchlist = async (req, res) => {
 
 module.exports = {
     getWatchlist,
-    addToWatchlist
+    addToWatchlist,
+    createNewWatchList,
+    renameExistingWatchlist,
+    deleteWatchlist
 }
