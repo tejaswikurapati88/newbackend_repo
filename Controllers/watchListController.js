@@ -3,54 +3,32 @@ const dbPool = require("./dbPool");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const createNewWatchList = async (req, res) => {
-  const { name } = req.body;
+const createWatchlist = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({
-        error: "Unauthorized: No token provided",
-      });
-    }
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+          return res.status(401).json({ error: 'Unauthorized: No token provided' });
+      }
 
-    //decode the token get user id from token
-    const decode = jwt.verify(token, process.env.SECRET_KEY);
-    const user_id = decode.userId;
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const userId = decoded.userId;
 
-    if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
-    }
+      if (!dbPool) {
+          return res.status(500).json({ error: 'Database connection is not established' });
+      }
 
-    //check name is already exist or not
-    const checkQuery = `SELECT watchlist_id FROM watchlists WHERE user_id=? AND name=?`;
-    const [existingWatchlist] = await dbPool.execute(checkQuery, [
-      user_id,
-      name,
-    ]);
+      const { name } = req.body;
+      if (!name) {
+          return res.status(400).json({ error: "Watchlist name is required" });
+      }
 
-    if (existingWatchlist.length > 0) {
-      return res.status(400).json({
-        error: `A watchlist with this name already exists.`,
-      });
-    }
+      const createWatchlistQuery = `INSERT INTO watchlists (user_id, name) VALUES (?, ?)`;
+      const [result] = await dbPool.query(createWatchlistQuery, [userId, name]);
 
-    //add watch list into the watchlist table
-    const query = `INSERT INTO watchlists (user_id,name) 
-      VALUES (?,?)
-    `;
-    const [result] = await dbPool.execute(query, [user_id, name]);
-
-    //response
-    return res.status(200).json({
-      success: true,
-      message: `Successfully create new watchlist ${name}`,
-      watchlistId: result.insertId,
-    });
+      return res.status(201).json({ message: "Watchlist created successfully", watchlistId: result.insertId });
   } catch (error) {
-    console.error("Error creating watchlist:", error.message);
-    return res.status(500).json({ error: "Internal Server Error" });
+      console.error("Error creating watchlist:", error);
+      return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -119,31 +97,24 @@ const renameExistingWatchlist = async (req, res) => {
 //------------------------------------------------------------------------------------------------------------------------
 
 const deleteWatchlist = async (req, res) => {
-  const { watchlist_id } = req.body;
   try {
+    const { watchlist_id } = req.body;
+    if (!watchlist_id) return res.status(400).json({ error: "Watchlist ID is required" });
+
     const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const userId = decoded.userId;
+
+    const deleteQuery = "DELETE FROM watchlists WHERE watchlist_id = ? AND user_id = ?";
+    const [result] = await dbPool.execute(deleteQuery, [watchlist_id, userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Watchlist not found or unauthorized" });
     }
 
-    const decode = jwt.verify(token, process.env.SECRET_KEY);
-    const user_id = decode.userId;
-
-    if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
-    }
-
-    //delete watchlist
-    const deleteQuery = `DELETE FROM watchlists WHERE watchlist_id = ? AND user_id = ?`;
-    await dbPool.execute(deleteQuery, [watchlist_id, user_id]);
-
-    //response
-    return res.status(200).json({
-      success: true,
-      message: "Watchlist deleted successfully",
-    });
+    return res.json({ message: "Watchlist deleted successfully" });
   } catch (error) {
     console.error("Error deleting watchlist:", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -312,11 +283,51 @@ const addToWatchlist = async (req, res) => {
   }
 };
 
+//get stocks for watchlist
+const getAssetForWatchlist = async (req, res) => {
+  try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+          return res.status(401).json({ error: 'Unauthorized: No token provided' });
+      }
+
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const userId = decoded.userId;
+
+      if (!dbPool) {
+          return res.status(500).json({ error: 'Database connection is not established' });
+      }
+
+      let watchlistId = req.query.watchlist_id;
+      if (!watchlistId) {
+          return res.status(400).json({ error: "Missing 'watchlist_id' query parameter" });
+      }
+
+      console.log("Query param:", watchlistId);
+
+      const query = `
+          SELECT wi.watchlist_id, wi.asset_type, wi.asset_symbol
+          FROM watchlist_items wi
+          JOIN watchlists w ON w.watchlist_id = wi.watchlist_id
+          JOIN userstable u ON u.user_id = w.user_id
+          WHERE u.user_id = ? AND w.watchlist_id = ?;
+      `;
+
+      const [result] = await dbPool.query(query, [userId, watchlistId]);
+
+      console.log("Query result:", result);
+      return res.status(200).json(result);
+  } catch (error) {
+      console.error("Error fetching assets from watchlist:", error);
+      return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 module.exports = {
     getWatchlist,
     addToWatchlist,
-    createNewWatchList,
+    createWatchlist,
     renameExistingWatchlist,
-    deleteWatchlist
+    deleteWatchlist,
+    getAssetForWatchlist
 }

@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -422,59 +423,66 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
 
 const GoogleSignIn = async (req, res) => {
+  console.log("Request Body:", req.body);
   const { token } = req.body;
-  console.log("Received Token:", token);
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
 
   try {
-    // Decode token to check audience
-    const decodedToken = jwt.decode(token);
-    console.log("Decoded Token:", decodedToken);
-
-    if (!decodedToken) {
-      return res.status(400).json({ error: "Invalid token format" });
-    }
-
-    if (decodedToken.aud !== CLIENT_ID) {
-      return res.status(403).json({ error: "Token audience mismatch" });
-    }
-
+    // Verify token using Google's OAuth client
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: CLIENT_ID,
+      audience: process.env.CLIENT_ID, // Ensure this matches Google Client ID
     });
 
     const payload = ticket.getPayload();
     console.log("Verified Payload:", payload);
 
-    // Extract user details
-    const { sub: userId, email, name, picture } = payload;
-
-    // Handling DB logic
-    if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
+    if (!payload) {
+      return res.status(401).json({ error: "Token verification failed" });
     }
 
+    // Extract user details
+    const { sub: userId, email, name, picture, exp } = payload;
+
+    // Check if the token is expired
+    if (Date.now() >= exp * 1000) {
+      return res.status(401).json({ error: "Token has expired" });
+    }
+
+    // Ensure database connection
+    if (!dbPool) {
+      return res.status(500).json({ error: "Database connection failed" });
+    }
+
+    // Check if user exists
     const findUserQuery = "SELECT * FROM userstable WHERE email = ?";
     const [existingUser] = await dbPool.query(findUserQuery, [email]);
 
-    if (!existingUser || existingUser.length === 0) {
-      const insertUserQuery =
-        "INSERT INTO userstable (email, name) VALUES (?, ?)";
+    if (!existingUser.length) {
+      // Insert new user if they don't exist
+      const insertUserQuery = "INSERT INTO userstable (email, name) VALUES (?, ?)";
       await dbPool.query(insertUserQuery, [email, name]);
       console.log("New user added to the Database");
-    } else {
-      return res.status(200).json("User already Exists");
     }
+
+    // Generate JWT token for user authentication
+    const jwtToken = jwt.sign(
+      { userId, email, name, picture },
+      process.env.SECRET_KEY,
+      { expiresIn: "7d" }
+    );
 
     res.status(200).json({
       message: "Authentication successful",
+      jwtToken,
       user: { userId, email, name, picture },
     });
   } catch (error) {
     console.error("Error verifying token:", error);
-    res.status(401).json({ message: "Authentication failed" });
+    res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
