@@ -583,7 +583,7 @@ const forgetPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset Request",
-      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/reset-password/${token}`,
+      text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/forgotresetpassword/${token}`,
     };
 
     await transporter.sendMail(receiver);
