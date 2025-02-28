@@ -53,16 +53,19 @@ app.use("/plan", planRouter);
 app.use("/search", searchRouter);
 
 app.use("/userdetails", userDetailsRouter);
+
 app.use("/search", searchRouter);
 
 app.use("/myportfolio", portfolioRouter);
 
 app.use('/riskanalysis', riskAnalysisRouter)
+
 app.use('/orders', ordersRouter)
 
 app.use('/icons', iconsRouter)
 
 app.use("/uploads", express.static("uploads"));
+
 app.use("/mutualFunds", mutualFundsRouter);
 
 app.use("/Watchlist", watchlistRouter);
