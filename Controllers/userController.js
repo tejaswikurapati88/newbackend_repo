@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -44,8 +43,10 @@ const createUser = async (req, res) => {
         .json({ message: "All the details should be provided" });
     } else {
       const [userExists] = await dbPool.query(
-        `select * from userstable where email= '${email}'`
+        `select * from userstable where email= ?`,
+        [email]
       );
+
       if (userExists.length === 0) {
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
@@ -74,6 +75,7 @@ const createUser = async (req, res) => {
           verificationToken,
           tokenExpiry,
         ]);
+
         // Send the verification email
         const transporter = nodemailer.createTransport({
           service: "Gmail", // Email service
@@ -114,6 +116,8 @@ const createUser = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 const userSignin = async (req, res) => {
   try {
@@ -173,7 +177,7 @@ const userSignin = async (req, res) => {
       expiresIn: "12h",
     });
 
-    return res.status(200).json({jwtToken: token});
+    return res.status(200).json({ jwtToken: token });
   } catch (error) {
     console.error("Error in /user/signin:", error);
     return res
@@ -463,7 +467,8 @@ const GoogleSignIn = async (req, res) => {
 
     if (!existingUser.length) {
       // Insert new user if they don't exist
-      const insertUserQuery = "INSERT INTO userstable (email, name) VALUES (?, ?)";
+      const insertUserQuery =
+        "INSERT INTO userstable (email, name) VALUES (?, ?)";
       await dbPool.query(insertUserQuery, [email, name]);
       console.log("New user added to the Database");
     }
@@ -582,16 +587,30 @@ const forgetPassword = async (req, res) => {
       service: "gmail",
       secure: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.GMAIL,
+        pass: process.env.GMAIL_PASS,
       },
     });
 
     const receiver = {
-      from: process.env.EMAIL_USER,
+      from: process.env.GMAIL,
       to: email,
       subject: "Password Reset Request",
       text: `Click on this link to generate your new password ${process.env.CLIENT_URL}/forgotresetpassword/${token}`,
+      html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+            <h2>Hi,</h2>
+            <p>You have requested to reset your password. Please click the button below to proceed:</p>
+            <p style="text-align: center;">
+                <a href="${process.env.CLIENT_URL}/forgotresetpassword/${token}" 
+                   style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                   Reset Password
+                </a>
+            </p>
+            <p>If the button doesn't work, you can also reset your password by copying and pasting the following link into your browser:</p>
+            <p><a href="${process.env.CLIENT_URL}/forgotresetpassword/${token}">${process.env.CLIENT_URL}/forgotresetpassword/${token}</a></p>
+            <p>Thanks,<br>Finance Shastra Team</p>
+        </div>`,
     };
 
     await transporter.sendMail(receiver);
@@ -718,8 +737,8 @@ const resetPassword = async (req, res) => {
 //     const transporter = nodemailer.createTransport({
 //       service: "Gmail",
 //       auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS,
+//         user: process.env.GMAIL,
+//         pass: process.env.GMAIL_PASS,
 //       },
 //     });
 
