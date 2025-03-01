@@ -283,6 +283,45 @@ const addToWatchlist = async (req, res) => {
   }
 };
 
+const removeStockFromWatchlist = async (req, res) => {
+
+  // Extract and verify JWT token
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
+
+  const decoded = jwt.verify(token, process.env.SECRET_KEY);
+  console.log(decoded);
+  const userId = decoded.userId;
+
+  if (!dbPool) {
+    return res
+      .status(500)
+      .json({ error: "Database connection is not established" });
+  }
+  const { asset_id, watchlist_id } = req.body;
+
+  if (!asset_id || !watchlist_id) {
+    return res.status(400).json({ error: "Missing asset_id or watchlist_id" });
+  }
+
+  const sql = "DELETE FROM watchlist_assets WHERE asset_id = ? AND watchlist_id = ?";
+  
+  db.query(sql, [asset_id, watchlist_id], (err, result) => {
+    if (err) {
+      console.error("Error deleting stock:", err);
+      return res.status(500).json({ error: "Failed to delete stock" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Stock not found in watchlist" });
+    }
+
+    res.json({ message: "Stock removed successfully" });
+  });
+}
+
 //get stocks for watchlist
 const getAssetForWatchlist = async (req, res) => {
   try {
