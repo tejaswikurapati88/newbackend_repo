@@ -139,11 +139,11 @@ const userSignin = async (req, res) => {
     if (user.length === 0) {
       return res.status(404).json({ message: "Invalid User. Please SignUp!" });
     }
-    /*if (user[0].isVerified === 0) {
+    if (user[0].isVerified === 0) {
       return res
         .status(401)
         .json({ message: "Unverified User. Please check your mail!" });
-    }*/
+    }
 
     // Verify password
     const compare = await bcrypt.compare(password, user[0].password);
