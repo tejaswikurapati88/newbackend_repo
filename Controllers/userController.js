@@ -319,23 +319,23 @@ const verifyEmail = async (req, res) => {
 
     // Check token expiry
     if (new Date(userDetails.tokenExpiry) < Date.now()) {
-      const query = `
-            Delete * from  userstable where user_id = ?;
-            `;
-      await dbPool.query(query, [userDetails.user_id]);
-      res.status(200).json({ message: "unverified user deleted" });
-    } else {
-      const updateQuery = `
-            UPDATE userstable 
-            SET isVerified = 1, verificationToken = NULL, tokenExpiry = NULL 
-            WHERE user_id = ?;
-            `;
-      await dbPool.query(updateQuery, [userDetails.user_id]);
-
-      res.status(200).json({ message: "Email verified successfully!" });
+      // Delete unverified user
+      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [userDetails.user_id]);
+      
+      return res.status(410).json({ message: "Verification token expired. User deleted." });
     }
 
     // Update user as verified
+    await dbPool.query(
+      `UPDATE userstable 
+       SET isVerified = 1, verificationToken = NULL, tokenExpiry = NULL 
+       WHERE user_id = ?;`,
+      [userDetails.user_id]
+    );
+
+    // Redirect user to the login page after successful verification
+    res.redirect("https://prod-frontend-psi.vercel.app/login");  
+
   } catch (error) {
     res
       .status(500)
