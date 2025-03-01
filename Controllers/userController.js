@@ -54,25 +54,28 @@ const createUser = async (req, res) => {
 
         const hashedPass = await bcrypt.hash(password, 10);
         const username = email.split("@")[0];
+        const datenow= new Date()
+        const formattedDate = `${datenow.getFullYear()}-${datenow.getMonth() + 1}-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
 
         const insertQuery = `
                     INSERT INTO userstable (name, email, password, verificationToken, tokenExpiry, isVerified, creation_date)
-                    VALUES (?, ?, ?, ?, ?, false, NOW());
+                    VALUES (?, ?, ?, ?, ?, false, ?);
                 `;
         const insertintouserDetails = `
-                    INSERT INTO user_details (email, username, created_date) Values (?, ?, NOW());
+                    INSERT INTO user_details (email, username, created_date) Values (?, ?, ?);
                 `;
         const insertintouserInvestment = `
-                    Insert INTO user_investment_details (username, created_date) Values (?, NOW());
+                    Insert INTO user_investment_details (username, created_date) Values (?, ?);
                 `;
-        await dbPool.query(insertintouserInvestment, [username]);
-        await dbPool.query(insertintouserDetails, [email, username]);
+        await dbPool.query(insertintouserInvestment, [username, formattedDate]);
+        await dbPool.query(insertintouserDetails, [email, username, formattedDate]);
         await dbPool.query(insertQuery, [
           name,
           email,
           hashedPass,
           verificationToken,
           tokenExpiry,
+          formattedDate
         ]);
         // Send the verification email
         const transporter = nodemailer.createTransport({
@@ -132,11 +135,11 @@ const userSignin = async (req, res) => {
     if (user.length === 0) {
       return res.status(404).json({ message: "Invalid User. Please SignUp!" });
     }
-    if (user[0].isVerified === 0) {
+    /*if (user[0].isVerified === 0) {
       return res
         .status(401)
         .json({ message: "Unverified User. Please check your mail!" });
-    }
+    }*/
 
     // Verify password
     const compare = await bcrypt.compare(password, user[0].password);
