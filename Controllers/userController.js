@@ -50,7 +50,7 @@ const createUser = async (req, res) => {
       if (userExists.length === 0) {
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
-        const verificationLink = `${process.env.RENDER_URL}/users/verifyEmail?token=${verificationToken}`;
+        const verificationLink = `https://newbackend-repo.onrender.com/users/verifyEmail?token=${verificationToken}`;
         console.log(verificationLink)
         const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -109,6 +109,7 @@ const createUser = async (req, res) => {
                         </div>
                     `,
         });
+        console.log(verificationLink)
         res.status(200).json({ message: "User registered successfully" });
       } else {
         res.status(400).json({ message: "User already Exists, Please Login!" });
