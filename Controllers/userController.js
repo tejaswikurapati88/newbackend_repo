@@ -424,7 +424,6 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
 
 const GoogleSignIn = async (req, res) => {
-  console.log("Request Body:", req.body);
   const { token } = req.body;
 
   if (!token) {
@@ -435,7 +434,7 @@ const GoogleSignIn = async (req, res) => {
     // Verify token using Google's OAuth client
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.CLIENT_ID, // Ensure this matches Google Client ID
+      audience: process.env.CLIENT_ID, // Ensure this matches your Google Client ID
     });
 
     const payload = ticket.getPayload();
@@ -445,8 +444,8 @@ const GoogleSignIn = async (req, res) => {
       return res.status(401).json({ error: "Token verification failed" });
     }
 
-    // Extract user details
-    const { sub: userId, email, name, picture, exp } = payload;
+    // Extract user details from Google payload
+    const { sub: googleUserId, email, name, picture, exp } = payload;
 
     // Check if the token is expired
     if (Date.now() >= exp * 1000) {
@@ -458,27 +457,54 @@ const GoogleSignIn = async (req, res) => {
       return res.status(500).json({ error: "Database connection failed" });
     }
 
-    // Check if user exists
-    const findUserQuery = "SELECT * FROM userstable WHERE email = ?";
+    let userId;
+    let userExists = false;
+
+    // Check if user exists in the database
+    const findUserQuery = "SELECT user_id, name, google_id FROM userstable WHERE email = ?";
     const [existingUser] = await dbPool.query(findUserQuery, [email]);
 
-    if (!existingUser.length) {
-      // Insert new user if they don't exist
-      const insertUserQuery =
-        "INSERT INTO userstable (email, name) VALUES (?, ?)";
-      await dbPool.query(insertUserQuery, [email, name]);
-      console.log("New user added to the Database");
+    if (existingUser.length) {
+      userExists = true;
+      userId = existingUser[0].user_id;
+
+      // Update only if the name or Google ID has changed
+      if (existingUser[0].name !== name || existingUser[0].google_id !== googleUserId) {
+        const updateUserQuery = "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
+        await dbPool.query(updateUserQuery, [name, googleUserId, userId]);
+        console.log("Existing user details updated");
+      }
+    } else {
+      // Start transaction for inserting a new user
+      const connection = await dbPool.getConnection();
+      try {
+        await connection.beginTransaction();
+
+        // Insert new user
+        const insertUserQuery = "INSERT INTO userstable (email, name, picture, google_id) VALUES (?, ?, ?, ?)";
+        const [insertResult] = await connection.query(insertUserQuery, [email, name, picture, googleUserId]);
+        userId = insertResult.insertId; // Get the auto-generated ID from the database
+
+        await connection.commit();
+        console.log("New user added to the Database", userId);
+      } catch (error) {
+        await connection.rollback();
+        console.error("Error inserting new user:", error);
+        return res.status(500).json({ error: "Database error: Failed to insert user" });
+      } finally {
+        connection.release();
+      }
     }
 
-    // Generate JWT token for user authentication
+    // Generate JWT token using the correct user ID
     const jwtToken = jwt.sign(
       { userId, email, name, picture },
       process.env.SECRET_KEY,
-      { expiresIn: "7d" }
+      { expiresIn: "1h" }
     );
 
     res.status(200).json({
-      message: "Authentication successful",
+      message: userExists ? "Login successful" : "Registration successful",
       jwtToken,
       user: { userId, email, name, picture },
     });

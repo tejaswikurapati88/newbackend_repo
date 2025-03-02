@@ -284,43 +284,66 @@ const addToWatchlist = async (req, res) => {
 };
 
 const removeStockFromWatchlist = async (req, res) => {
-
-  // Extract and verify JWT token
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized: No token provided" });
-  }
-
-  const decoded = jwt.verify(token, process.env.SECRET_KEY);
-  console.log(decoded);
-  const userId = decoded.userId;
-
-  if (!dbPool) {
-    return res
-      .status(500)
-      .json({ error: "Database connection is not established" });
-  }
-  const { asset_id, watchlist_id } = req.body;
-
-  if (!asset_id || !watchlist_id) {
-    return res.status(400).json({ error: "Missing asset_id or watchlist_id" });
-  }
-
-  const sql = "DELETE FROM watchlist_assets WHERE asset_id = ? AND watchlist_id = ?";
-  
-  db.query(sql, [asset_id, watchlist_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting stock:", err);
-      return res.status(500).json({ error: "Failed to delete stock" });
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Stock not found in watchlist" });
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const userId = decoded.userId;
+
+    if (!dbPool) {
+      console.error("Database connection error");
+      return res.status(500).json({ error: "Database connection not established" });
     }
 
-    res.json({ message: "Stock removed successfully" });
-  });
-}
+    let { watchlist_id, asset_symbol } = req.body;
+
+    if (!watchlist_id || !asset_symbol) {
+      return res.status(400).json({ error: "Missing required fields: Watchlist ID and Asset Symbol" });
+    }
+
+    asset_symbol = asset_symbol.toUpperCase();
+
+    // Check if the watchlist belongs to the user
+    const [[watchlistCheck]] = await dbPool.execute(
+      "SELECT watchlist_id FROM watchlists WHERE watchlist_id = ? AND user_id = ?",
+      [watchlist_id, userId]
+    );
+
+    if (!watchlistCheck) {
+      console.warn(`Unauthorized access attempt by user ${userId} to watchlist ${watchlist_id}`);
+      return res.status(403).json({ error: "Unauthorized: Watchlist not found or does not belong to user" });
+    }
+
+    // Check if the stock exists in the watchlist
+    const [[existingAsset]] = await dbPool.execute(
+      "SELECT item_id FROM watchlist_items WHERE watchlist_id = ? AND asset_symbol = ?",
+      [watchlist_id, asset_symbol]
+    );
+
+    if (!existingAsset) {
+      return res.status(404).json({ error: "Asset not found in watchlist" });
+    }
+
+    // Delete stock
+    await dbPool.execute(
+      "DELETE FROM watchlist_items WHERE watchlist_id = ? AND asset_symbol = ?",
+      [watchlist_id, asset_symbol]
+    );
+
+    console.log(`Stock ${asset_symbol} removed from watchlist ${watchlist_id} by user ${userId}`);
+    res.status(200).json({ message: "Stock removed from watchlist" });
+  } catch (error) {
+    console.error("Error removing stock:", error);
+
+    let statusCode = 500;
+    if (error.name === "JsonWebTokenError") statusCode = 401;
+
+    res.status(statusCode).json({ error: error.message || "Internal Server Error" });
+  }
+};
 
 //get stocks for watchlist
 const getAssetForWatchlist = async (req, res) => {
@@ -365,6 +388,7 @@ const getAssetForWatchlist = async (req, res) => {
 module.exports = {
     getWatchlist,
     addToWatchlist,
+    removeStockFromWatchlist,
     createWatchlist,
     renameExistingWatchlist,
     deleteWatchlist,

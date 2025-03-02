@@ -3,6 +3,7 @@ const express = require("express");
 const {
   getWatchlist,
   addToWatchlist,
+  removeStockFromWatchlist,
   createWatchlist,
   renameExistingWatchlist,
   deleteWatchlist,
@@ -23,6 +24,8 @@ router.delete("/deleteWatchlist", deleteWatchlist);
 router.get("/", getWatchlist);
 
 router.post("/addStockToWatchklist", addToWatchlist);
+
+router.delete("/removeStockFromWatchlist", removeStockFromWatchlist);
 
 router.get('/getWatchlistAssets', getAssetForWatchlist)
 

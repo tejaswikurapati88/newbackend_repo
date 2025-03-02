@@ -224,7 +224,7 @@ const addmutualFundToPortfolio = async (req, res) => {
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.SECRET_KEY);
-            console.log(decoded)
+            
         } catch (err) {
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
@@ -256,7 +256,6 @@ const addmutualFundToPortfolio = async (req, res) => {
                 `SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
                 [decoded.userId]
             );
-            console.log(portfolioRows)
             console.log(portfolioRows[0])
 
             let portfolio_id = portfolioRows.length ? portfolioRows[0].portfolio_id : null;
@@ -390,13 +389,13 @@ const allocationChart = async (req, res) => {
 
         // 1. Verify the JWT from the Authorization header
         const token = req.headers.authorization?.split(' ')[1]; // Extract token from Bearer header
-        console.log(token)
+
         if (!token) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
         try {
             const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
-            console.log(decoded.userId)
+            
             if (!dbPool) {
                 return res.status(500).json({ error: 'Database connection is not established' });
             }
@@ -469,8 +468,6 @@ const portfolioStocks = async (req, res) => {
             return res.status(500).json({ error: 'Database connection is not established' });
         }
 
-        console.log(decoded);
-
         const portfolioStocksQuery = `
         SELECT 
             h.stock_name,
@@ -534,8 +531,6 @@ const stocksTransaction = async (req, res) => {
             await connection.rollback();
             return res.status(500).json({ error: 'Database connection is not established' });
         }
-
-        console.log(decoded);
 
         const portfolioStocksQuery = `
         SELECT 
@@ -602,8 +597,6 @@ const mutualsTransaction = async (req, res) => {
             await connection.rollback();
             return res.status(500).json({ error: 'Database connection is not established' });
         }
-
-        console.log(decoded);
 
         const portfolioStocksQuery = `
         SELECT 
