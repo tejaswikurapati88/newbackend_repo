@@ -51,7 +51,6 @@ const createUser = async (req, res) => {
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
         const verificationLink = `https://newbackend-repo.onrender.com/users/verifyEmail?token=${verificationToken}`;
-        console.log(verificationLink)
         const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const hashedPass = await bcrypt.hash(password, 10);
@@ -109,7 +108,6 @@ const createUser = async (req, res) => {
                         </div>
                     `,
         });
-        console.log(verificationLink)
         res.status(200).json({ message: "User registered successfully" });
       } else {
         res.status(400).json({ message: "User already Exists, Please Login!" });
@@ -298,50 +296,44 @@ const verifyEmail = async (req, res) => {
     const { token } = req.query;
 
     if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
+      return res.status(500).json({ error: "Database connection is not established" });
     }
 
-    // Check if the token exists
     const [user] = await dbPool.query(
       `SELECT * FROM userstable WHERE verificationToken = ?`,
       [token]
     );
 
     if (user.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired verification token." });
+      return res.status(400).json({ message: "Invalid or expired verification token." });
     }
 
     const userDetails = user[0];
 
-    // Check token expiry
     if (new Date(userDetails.tokenExpiry) < Date.now()) {
-      // Delete unverified user
-      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [userDetails.user_id]);
       
+      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [userDetails.user_id]);
+
       return res.status(410).json({ message: "Verification token expired. User deleted." });
     }
 
-    // Update user as verified
-    await dbPool.query(
+    const updateResult = await dbPool.query(
       `UPDATE userstable 
        SET isVerified = 1, verificationToken = NULL, tokenExpiry = NULL 
        WHERE user_id = ?;`,
       [userDetails.user_id]
     );
 
-    // Redirect user to the login page after successful verification
-    res.redirect("https://prod-frontend-psi.vercel.app/login");  
-
+    if (updateResult[0].affectedRows > 0) {
+      return res.redirect("https://prod-frontend-psi.vercel.app/login");
+    } else {
+      return res.status(500).json({ message: "User verification failed. Please try again later." });
+    }
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Internal Server Error", details: error.message });
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
 };
+
 
 //--------------------------------------------------------------------------------------------------------------------
 
