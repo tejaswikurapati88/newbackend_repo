@@ -3,6 +3,7 @@ const dbPool = require("./dbPool");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+//Controller for create new Watchlist
 const createWatchlist = async (req, res) => {
   try {
       const token = req.headers.authorization?.split(' ')[1];
@@ -33,7 +34,7 @@ const createWatchlist = async (req, res) => {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-
+//Controller for rename existing watchlist
 const renameExistingWatchlist = async (req, res) => {
   const { watchlist_id, name } = req.body;
 
@@ -95,7 +96,7 @@ const renameExistingWatchlist = async (req, res) => {
   }
 };
 //------------------------------------------------------------------------------------------------------------------------
-
+//Controller for delete watchlist
 const deleteWatchlist = async (req, res) => {
   try {
     const { watchlist_id } = req.body;
@@ -122,7 +123,7 @@ const deleteWatchlist = async (req, res) => {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-
+//Controller for get watchlists
 const getWatchlist = async (req, res) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -187,7 +188,7 @@ const getWatchlist = async (req, res) => {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-
+//Controller for add stocks to watchlist
 const addToWatchlist = async (req, res) => {
   try {
     // Extract and verify JWT token
@@ -283,6 +284,8 @@ const addToWatchlist = async (req, res) => {
   }
 };
 
+//------------------------------------------------------------------------------------------------------------------------
+//Controller for remove stocks from watchlist
 const removeStockFromWatchlist = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
@@ -345,6 +348,7 @@ const removeStockFromWatchlist = async (req, res) => {
   }
 };
 
+//------------------------------------------------------------------------------------------------------------------------
 //get stocks for watchlist
 const getAssetForWatchlist = async (req, res) => {
   try {
