@@ -55,8 +55,10 @@ const createUser = async (req, res) => {
 
         const hashedPass = await bcrypt.hash(password, 10);
         const username = email.split("@")[0];
-        const datenow= new Date()
-        const formattedDate = `${datenow.getFullYear()}-${datenow.getMonth() + 1}-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
+        const datenow = new Date();
+        const formattedDate = `${datenow.getFullYear()}-${
+          datenow.getMonth() + 1
+        }-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
 
         const insertQuery = `
                     INSERT INTO userstable (name, email, password, verificationToken, tokenExpiry, isVerified, creation_date)
@@ -69,14 +71,18 @@ const createUser = async (req, res) => {
                     Insert INTO user_investment_details (username, created_date) Values (?, ?);
                 `;
         await dbPool.query(insertintouserInvestment, [username, formattedDate]);
-        await dbPool.query(insertintouserDetails, [email, username, formattedDate]);
+        await dbPool.query(insertintouserDetails, [
+          email,
+          username,
+          formattedDate,
+        ]);
         await dbPool.query(insertQuery, [
           name,
           email,
           hashedPass,
           verificationToken,
           tokenExpiry,
-          formattedDate
+          formattedDate,
         ]);
 
         // Send the verification email
@@ -170,6 +176,25 @@ const userSignin = async (req, res) => {
       loginTime,
     ]);
 
+    // Fetch the device_id using a query
+    const getDeviceQuery = `
+      SELECT device_id FROM user_devices 
+      WHERE user_id = ? AND device_name = ? AND ip_address = ? AND user_agent = ?
+      ORDER BY login_time DESC LIMIT 1
+    `;
+    const [deviceResult] = await dbPool.query(getDeviceQuery, [
+      user[0].user_id,
+      deviceName,
+      ipAddress,
+      userAgent,
+    ]);
+
+    if (deviceResult.length === 0) {
+      return res.status(500).json({ message: "Error retrieving device ID" });
+    }
+
+    const deviceId = deviceResult[0].device_id;
+
     // Generate JWT token
     const payload = {
       userId: user[0].user_id,
@@ -180,7 +205,7 @@ const userSignin = async (req, res) => {
       expiresIn: "12h",
     });
 
-    return res.status(200).json({ jwtToken: token });
+    return res.status(200).json({ jwtToken: token, deviceId: deviceId });
   } catch (error) {
     console.error("Error in /user/signin:", error);
     return res
@@ -188,6 +213,8 @@ const userSignin = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 //for getting loged device information
 const deviceInfo = async (req, res) => {
@@ -243,6 +270,22 @@ const endSession = async (req, res) => {
     const decode = jwt.verify(token, process.env.SECRET_KEY);
     const userId = decode.userId;
 
+    //checking session is already end or not
+    const [existingSession] = await dbPool.query(
+      `SELECT is_active FROM user_devices WHERE user_id = ? AND device_id = ?`,
+      [userId, device_id]
+    );
+
+    if (existingSession.length === 0) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
+
+    if (!existingSession[0].is_active) {
+      return res.status(400).json({ message: "Session is already ended" });
+    }
+
     const getISTTime = () => {
       const date = new Date();
       const istOffset = 5.5 * 60 * 60 * 1000;
@@ -267,21 +310,16 @@ const endSession = async (req, res) => {
     const formattedTime = formatDate(logoutTime);
 
     await dbPool.query(
-      `UPDATE user_devices 
-       SET logout_time = ?, is_active = FALSE 
-       WHERE user_id = ? AND device_id = ?`,
-      [
-        logoutTime.toISOString().slice(0, 19).replace("T", " "),
-        userId,
-        device_id,
-      ]
+      `DELETE FROM user_devices WHERE user_id = ? AND device_id = ?`,
+      [userId, device_id]
     );
 
     //response
     return res.status(200).json({
       success: true,
-      message: "Session Ended Successfully",
+      message: "Session Ended Successfully and Device Removed",
       logoutTime: formattedTime,
+      device_id,
     });
   } catch (error) {
     console.error(error);
@@ -296,7 +334,9 @@ const verifyEmail = async (req, res) => {
     const { token } = req.query;
 
     if (!dbPool) {
-      return res.status(500).json({ error: "Database connection is not established" });
+      return res
+        .status(500)
+        .json({ error: "Database connection is not established" });
     }
 
     const [user] = await dbPool.query(
@@ -305,16 +345,21 @@ const verifyEmail = async (req, res) => {
     );
 
     if (user.length === 0) {
-      return res.status(400).json({ message: "Invalid or expired verification token." });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired verification token." });
     }
 
     const userDetails = user[0];
 
     if (new Date(userDetails.tokenExpiry) < Date.now()) {
-      
-      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [userDetails.user_id]);
+      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [
+        userDetails.user_id,
+      ]);
 
-      return res.status(410).json({ message: "Verification token expired. User deleted." });
+      return res
+        .status(410)
+        .json({ message: "Verification token expired. User deleted." });
     }
 
     const updateResult = await dbPool.query(
@@ -327,13 +372,16 @@ const verifyEmail = async (req, res) => {
     if (updateResult[0].affectedRows > 0) {
       return res.redirect("https://prod-frontend-psi.vercel.app/login");
     } else {
-      return res.status(500).json({ message: "User verification failed. Please try again later." });
+      return res
+        .status(500)
+        .json({ message: "User verification failed. Please try again later." });
     }
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
   }
 };
-
 
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -461,7 +509,8 @@ const GoogleSignIn = async (req, res) => {
     let userExists = false;
 
     // Check if user exists in the database
-    const findUserQuery = "SELECT user_id, name, google_id FROM userstable WHERE email = ?";
+    const findUserQuery =
+      "SELECT user_id, name, google_id FROM userstable WHERE email = ?";
     const [existingUser] = await dbPool.query(findUserQuery, [email]);
 
     if (existingUser.length) {
@@ -469,8 +518,12 @@ const GoogleSignIn = async (req, res) => {
       userId = existingUser[0].user_id;
 
       // Update only if the name or Google ID has changed
-      if (existingUser[0].name !== name || existingUser[0].google_id !== googleUserId) {
-        const updateUserQuery = "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
+      if (
+        existingUser[0].name !== name ||
+        existingUser[0].google_id !== googleUserId
+      ) {
+        const updateUserQuery =
+          "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
         await dbPool.query(updateUserQuery, [name, googleUserId, userId]);
         console.log("Existing user details updated");
       }
@@ -481,8 +534,14 @@ const GoogleSignIn = async (req, res) => {
         await connection.beginTransaction();
 
         // Insert new user
-        const insertUserQuery = "INSERT INTO userstable (email, name, picture, google_id) VALUES (?, ?, ?, ?)";
-        const [insertResult] = await connection.query(insertUserQuery, [email, name, picture, googleUserId]);
+        const insertUserQuery =
+          "INSERT INTO userstable (email, name, picture, google_id) VALUES (?, ?, ?, ?)";
+        const [insertResult] = await connection.query(insertUserQuery, [
+          email,
+          name,
+          picture,
+          googleUserId,
+        ]);
         userId = insertResult.insertId; // Get the auto-generated ID from the database
 
         await connection.commit();
@@ -490,7 +549,9 @@ const GoogleSignIn = async (req, res) => {
       } catch (error) {
         await connection.rollback();
         console.error("Error inserting new user:", error);
-        return res.status(500).json({ error: "Database error: Failed to insert user" });
+        return res
+          .status(500)
+          .json({ error: "Database error: Failed to insert user" });
       } finally {
         connection.release();
       }
