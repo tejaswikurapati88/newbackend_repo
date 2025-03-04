@@ -7,18 +7,30 @@ const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const getDeviceInfo = require("./deviceTracker");
+const { use } = require("passport");
 
 // get Users Table
 const getusers = async (req, res) => {
   try {
-    if (!dbPool) {
-      return res
-        .status(500)
-        .json({ error: "Database connection is not established" });
-    }
-    const selectQuery = "SELECT * from userstable";
-    const [users] = await dbPool.query(selectQuery);
-    res.json(users);
+    const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        console.log(decoded)
+        const userId = decoded.userId
+
+        if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
+
+        const selectQuery = "SELECT name from userstable where user_id = ?";
+        const [users] = await dbPool.query(selectQuery, [userId]);
+        res.status(200).json(users);
+        console.log(users[0].name)
+
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
