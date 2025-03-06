@@ -19,6 +19,7 @@ const iconsRouter = require('./Routes/iconsRoutes')
 const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
 const searchRouter = require("./Routes/searchRoutes");
 const watchlistRouter = require("./Routes/watchListRoutes")
+const referralRouter=require("./Routes/userReferralRoutes");
 
 const app = express();
 
@@ -41,6 +42,8 @@ const PORT = 3000;
 //Routers
 
 app.use("/users", userRouter);
+
+app.use("/referrals",referralRouter);
 
 app.use("/userPayment", paymentRouter);
 
