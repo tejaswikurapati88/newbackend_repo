@@ -7,24 +7,27 @@ const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const getDeviceInfo = require("./deviceTracker");
-const { use } = require("passport");
+
 
 // get Users Table
 const getusers = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.SECRET_KEY);
-        } catch (err) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        console.log(decoded)
-        const userId = decoded.userId
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.SECRET_KEY);
+    } catch (err) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+    console.log(decoded);
+    const userId = decoded.userId;
 
-        if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
+    if (!dbPool)
+      return res
+        .status(500)
+        .json({ error: "Database connection is not established" });
 
         const selectQuery = "SELECT * from userstable where user_id = ?";
         const [users] = await dbPool.query(selectQuery, [userId]);
@@ -99,14 +102,18 @@ const createUser = async (req, res) => {
                     Insert INTO user_investment_details (username, created_date) Values (?, ?);
                 `;
         await dbPool.query(insertintouserInvestment, [username, formattedDate]);
-        await dbPool.query(insertintouserDetails, [email, username, formattedDate]);
+        await dbPool.query(insertintouserDetails, [
+          email,
+          username,
+          formattedDate,
+        ]);
         await dbPool.query(insertQuery, [
           name,
           email,
           hashedPass,
           verificationToken,
           tokenExpiry,
-          formattedDate
+          formattedDate,
         ]);
 
         // Send the verification email
@@ -200,6 +207,25 @@ const userSignin = async (req, res) => {
       loginTime,
     ]);
 
+    // Fetch the device_id using a query
+    const getDeviceQuery = `
+      SELECT device_id FROM user_devices 
+      WHERE user_id = ? AND device_name = ? AND ip_address = ? AND user_agent = ?
+      ORDER BY login_time DESC LIMIT 1
+    `;
+    const [deviceResult] = await dbPool.query(getDeviceQuery, [
+      user[0].user_id,
+      deviceName,
+      ipAddress,
+      userAgent,
+    ]);
+
+    if (deviceResult.length === 0) {
+      return res.status(500).json({ message: "Error retrieving device ID" });
+    }
+
+    const deviceId = deviceResult[0].device_id;
+
     // Generate JWT token
     const payload = {
       userId: user[0].user_id,
@@ -210,7 +236,7 @@ const userSignin = async (req, res) => {
       expiresIn: "12h",
     });
 
-    return res.status(200).json({ jwtToken: token });
+    return res.status(200).json({ jwtToken: token, deviceId: deviceId });
   } catch (error) {
     console.error("Error in /user/signin:", error);
     return res
@@ -218,6 +244,8 @@ const userSignin = async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 };
+
+//--------------------------------------------------------------------------------------------------------------------
 
 //for getting loged device information
 const deviceInfo = async (req, res) => {
@@ -273,6 +301,22 @@ const endSession = async (req, res) => {
     const decode = jwt.verify(token, process.env.SECRET_KEY);
     const userId = decode.userId;
 
+    //checking session is already end or not
+    const [existingSession] = await dbPool.query(
+      `SELECT is_active FROM user_devices WHERE user_id = ? AND device_id = ?`,
+      [userId, device_id]
+    );
+
+    if (existingSession.length === 0) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
+
+    if (!existingSession[0].is_active) {
+      return res.status(400).json({ message: "Session is already ended" });
+    }
+
     const getISTTime = () => {
       const date = new Date();
       const istOffset = 5.5 * 60 * 60 * 1000;
@@ -297,21 +341,16 @@ const endSession = async (req, res) => {
     const formattedTime = formatDate(logoutTime);
 
     await dbPool.query(
-      `UPDATE user_devices 
-       SET logout_time = ?, is_active = FALSE 
-       WHERE user_id = ? AND device_id = ?`,
-      [
-        logoutTime.toISOString().slice(0, 19).replace("T", " "),
-        userId,
-        device_id,
-      ]
+      `DELETE FROM user_devices WHERE user_id = ? AND device_id = ?`,
+      [userId, device_id]
     );
 
     //response
     return res.status(200).json({
       success: true,
-      message: "Session Ended Successfully",
+      message: "Session Ended Successfully and Device Removed",
       logoutTime: formattedTime,
+      device_id,
     });
   } catch (error) {
     console.error(error);
@@ -326,7 +365,9 @@ const verifyEmail = async (req, res) => {
     const { token } = req.query;
 
     if (!dbPool) {
-      return res.status(500).json({ error: "Database connection is not established" });
+      return res
+        .status(500)
+        .json({ error: "Database connection is not established" });
     }
 
     const [user] = await dbPool.query(
@@ -335,16 +376,21 @@ const verifyEmail = async (req, res) => {
     );
 
     if (user.length === 0) {
-      return res.status(400).json({ message: "Invalid or expired verification token." });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired verification token." });
     }
 
     const userDetails = user[0];
 
     if (new Date(userDetails.tokenExpiry) < Date.now()) {
-      
-      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [userDetails.user_id]);
+      await dbPool.query(`DELETE FROM userstable WHERE user_id = ?`, [
+        userDetails.user_id,
+      ]);
 
-      return res.status(410).json({ message: "Verification token expired. User deleted." });
+      return res
+        .status(410)
+        .json({ message: "Verification token expired. User deleted." });
     }
 
     const updateResult = await dbPool.query(
@@ -357,13 +403,16 @@ const verifyEmail = async (req, res) => {
     if (updateResult[0].affectedRows > 0) {
       return res.redirect("https://prod-frontend-psi.vercel.app/login");
     } else {
-      return res.status(500).json({ message: "User verification failed. Please try again later." });
+      return res
+        .status(500)
+        .json({ message: "User verification failed. Please try again later." });
     }
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
   }
 };
-
 
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -491,7 +540,8 @@ const GoogleSignIn = async (req, res) => {
     let userExists = false;
 
     // Check if user exists in the database
-    const findUserQuery = "SELECT user_id, name, google_id FROM userstable WHERE email = ?";
+    const findUserQuery =
+      "SELECT user_id, name, google_id FROM userstable WHERE email = ?";
     const [existingUser] = await dbPool.query(findUserQuery, [email]);
 
     if (existingUser.length) {
@@ -499,8 +549,12 @@ const GoogleSignIn = async (req, res) => {
       userId = existingUser[0].user_id;
 
       // Update only if the name or Google ID has changed
-      if (existingUser[0].name !== name || existingUser[0].google_id !== googleUserId) {
-        const updateUserQuery = "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
+      if (
+        existingUser[0].name !== name ||
+        existingUser[0].google_id !== googleUserId
+      ) {
+        const updateUserQuery =
+          "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
         await dbPool.query(updateUserQuery, [name, googleUserId, userId]);
         console.log("Existing user details updated");
       }
@@ -511,8 +565,14 @@ const GoogleSignIn = async (req, res) => {
         await connection.beginTransaction();
 
         // Insert new user
-        const insertUserQuery = "INSERT INTO userstable (email, name, picture, google_id) VALUES (?, ?, ?, ?)";
-        const [insertResult] = await connection.query(insertUserQuery, [email, name, picture, googleUserId]);
+        const insertUserQuery =
+          "INSERT INTO userstable (email, name, picture, google_id) VALUES (?, ?, ?, ?)";
+        const [insertResult] = await connection.query(insertUserQuery, [
+          email,
+          name,
+          picture,
+          googleUserId,
+        ]);
         userId = insertResult.insertId; // Get the auto-generated ID from the database
 
         await connection.commit();
@@ -520,7 +580,9 @@ const GoogleSignIn = async (req, res) => {
       } catch (error) {
         await connection.rollback();
         console.error("Error inserting new user:", error);
-        return res.status(500).json({ error: "Database error: Failed to insert user" });
+        return res
+          .status(500)
+          .json({ error: "Database error: Failed to insert user" });
       } finally {
         connection.release();
       }
@@ -723,149 +785,8 @@ const resetPassword = async (req, res) => {
   }
 };
 
-//--------------------------------------------------------------------------------------------------------------------
-//function to generate referal code
-// const generateReferalCode = (name) => {
-//   const uniqueId = Date.now().toString(36);
-//   return `${name}-${uniqueId}`;
-// };
 
-//function to generate referal link
-// const generateReferralLink = async (referralCode) => {
-//   return `${process.env.CLIENT_URL}/register?referralCode=${referralCode}`;
-// };
 
-// const sendReferralEmail = async (req, res) => {
-//   try {
-//     const {
-//       referrerEmail,
-//       referrerName,
-//       recipientEmail,
-//       planType,
-//       referredName,
-//     } = req.body;
-
-//     const [rows] = await dbPool.query(
-//       `SELECT user_id FROM userstable WHERE email = ?`,
-//       [referrerEmail]
-//     );
-
-//     if (rows.length === 0) {
-//       return res.status(404).json({ message: "Referrer not found" });
-//     }
-
-//     const userId = rows[0].user_id;
-
-//     const [referalRows] = await dbPool.query(
-//       `SELECT referral_code FROM referrals WHERE user_id =?`,
-//       [userId]
-//     );
-
-//     let referralCode =
-//       referalRows.length > 0 ? referalRows[0].referral_code : null;
-
-//     if (!referralCode) {
-//       referralCode = generateReferalCode(referrerName.slice(0, 4));
-
-//       await dbPool.query(
-//         `INSERT INTO referrals (user_id, referral_code) VALUES (?, ?)
-//          ON DUPLICATE KEY UPDATE referral_code = referral_code`,
-//         [userId, referralCode]
-//       );
-//     }
-
-//     const referralLink = await generateReferralLink(referralCode);
-//     const planColumn = `${planType}_count`;
-
-//     //insert or update referral record
-//     await dbPool.query(
-//       `INSERT INTO referrals (user_id,referred_email,referred_name,${planColumn})
-//         VALUES (?,?,?,1)
-//         ON DUPLICATE KEY UPDATE ${planColumn} =${planColumn}+1
-//       `,
-//       [userId, recipientEmail, referredName]
-//     );
-
-//     //sending referral email
-//     const transporter = nodemailer.createTransport({
-//       service: "Gmail",
-//       auth: {
-//         user: process.env.GMAIL,
-//         pass: process.env.GMAIL_PASS,
-//       },
-//     });
-
-//     await transporter.sendMail({
-//       from: "team@financeshastra.com",
-//       to: recipientEmail,
-//       subject: "Join Finance Shastra with a Special Invitation!",
-//       html: `
-//        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-//           <h2>Hi ${referredName},</h2>
-//           <p>${referrerName} has invited you to join Finance Shastra! Use the link below to sign up and start enjoying exclusive benefits:</p>
-//           <p style="text-align: center;">
-//             <a href="${referralLink}"
-//                style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px; font-size: 16px;">
-//                Sign Up Now
-//             </a>
-//           </p>
-//           <p>If the button doesn't work, you can also sign up using the following link:</p>
-//           <p><a href="${referralLink}">${referralLink}</a></p>
-//           <p>Thanks,<br>Finance Shastra Team</p>
-//         </div>
-//       `,
-//     });
-
-//     //response
-//     res.status(200).json({
-//       success: true,
-//       message: "Referral email sent successfully",
-//     });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ error: "Internal Server Error", details: error.message });
-//   }
-// };
-
-//registeration with referal link
-// const registerReferedUser = async (req, res) => {
-//   try {
-//     const { referralCode, name, email, password, planType } = req.body;
-
-//     const findReferralQuery = `SELECT user_id FROM userstable WHERE referral_code =?`;
-//     const [results] = await dbPool.query(findReferralQuery, [referralCode]);
-
-//     if (results.length === 0) {
-//       return res.status(400).send("Invalid referral code");
-//     }
-
-//     const userId = results[0].user_id;
-//     const hashedPass = await bcrypt.hash(password, 10);
-
-//     const insertUserQuery =
-//       "INSERT INTO users (name, email, password, creation_date, isVerified) VALUES (?, ?, ?, NOW(), true)";
-
-//     await dbPool.query(insertUserQuery, [name, email, hashedPass]);
-
-//     const points = planType.includes("yearly") ? 100 : 50;
-//     const updatePointsQuery =
-//       "UPDATE users SET points = points + ? WHERE user_id = ?";
-//     await dbPool.query(updatePointsQuery, [points, userId]);
-
-//     // Response
-//     res.status(200).json({
-//       success: true,
-//       message: "New user successfully register and user points updated",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       error: true,
-//       message: "Error to register user using register link",
-//     });
-//   }
-// };
 
 module.exports = {
   getusers,
@@ -880,6 +801,4 @@ module.exports = {
   resetPassword,
   deviceInfo,
   endSession,
-  // sendReferralEmail,
-  // registerReferedUser,
 };
