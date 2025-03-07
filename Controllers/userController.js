@@ -8,7 +8,6 @@ const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const getDeviceInfo = require("./deviceTracker");
 
-
 // get Users Table
 const getusers = async (req, res) => {
   try {
@@ -29,11 +28,10 @@ const getusers = async (req, res) => {
         .status(500)
         .json({ error: "Database connection is not established" });
 
-        const selectQuery = "SELECT * from userstable where user_id = ?";
-        const [users] = await dbPool.query(selectQuery, [userId]);
-        res.status(200).json(users);
-        console.log(users[0].name)
-
+    const selectQuery = "SELECT * from userstable where user_id = ?";
+    const [users] = await dbPool.query(selectQuery, [userId]);
+    res.status(200).json(users);
+    console.log(users[0].name);
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -47,8 +45,6 @@ const createUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const { referralCode } = req.query;
-
-    console.log(referralCode)
 
     if (!dbPool) {
       return res
@@ -73,23 +69,10 @@ const createUser = async (req, res) => {
 
         const hashedPass = await bcrypt.hash(password, 10);
         const username = email.split("@")[0];
-        const datenow= new Date()
-        const formattedDate = `${datenow.getFullYear()}-${datenow.getMonth() + 1}-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
-
-        let referrer = null;
-
-        // If referral code exists, validate it
-        if (referralCode) {
-          const [referrerUser] = await dbPool.query(
-            `UPDATE referrals SET register = 1 WHERE ref_code = ?;`,
-            [referralCode]
-          );
-          if (referrerUser.length > 0) {
-            return res.status(200). json({message: "Referral Successful"})
-          } else {
-            return res.status(400).json({ message: "Invalid referral code" });
-          }
-        }
+        const datenow = new Date();
+        const formattedDate = `${datenow.getFullYear()}-${
+          datenow.getMonth() + 1
+        }-${datenow.getDate()} ${datenow.getHours()}:${datenow.getMinutes()}:${datenow.getSeconds()}`;
 
         const insertQuery = `
                     INSERT INTO userstable (name, email, password, verificationToken, tokenExpiry, isVerified, creation_date)
@@ -115,6 +98,17 @@ const createUser = async (req, res) => {
           tokenExpiry,
           formattedDate,
         ]);
+
+        //check if a referral code was used
+        if (referralCode) {
+          const [updateResult] = await dbPool.query(
+            `UPDATE referrals SET register = 1 WHERE ref_code = ?;`,
+            [referralCode]
+          );
+          if (updateResult.affectedRows === 0) {
+            return res.status(400).json({ message: "Invalid referral code" });
+          }
+        }
 
         // Send the verification email
         const transporter = nodemailer.createTransport({
@@ -784,9 +778,6 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Error reset password", error });
   }
 };
-
-
-
 
 module.exports = {
   getusers,
