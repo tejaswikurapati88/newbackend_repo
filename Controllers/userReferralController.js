@@ -3,9 +3,13 @@ const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
 // Function to generate a referral code
-const generateReferralCode = (email, userId) => {
+const generateReferralCode = (email) => {
   const emailPrefix = email.split("@")[0];
-  return `${emailPrefix}-${userId}`;
+  const randomString = Math.random()
+    .toString(36)
+    .substring(2, 10)
+    .toUpperCase();
+  return `${emailPrefix}-${randomString}`;
 };
 
 // Function to generate a referral link
@@ -34,6 +38,7 @@ const sendReferralEmail = async (req, res) => {
     //getting user_id from token
     const userId = decode.userId;
 
+
     // Check if the referred email and movile no already exists]
     const [existingReferrals] = await dbPool.query(
       `SELECT * FROM referrals WHERE referredEmail = ? OR referredMobileNo = ?`,
@@ -47,13 +52,13 @@ const sendReferralEmail = async (req, res) => {
     }
 
     // Generate a unique referral code for this referral
-    const referralCode = generateReferralCode(decode.email, decode.userId);
+    const referralCode = generateReferralCode(decode.email);
     const referralLink = generateReferralLink(referralCode);
 
     // insert referral data into table
     await dbPool.query(
       `INSERT INTO referrals (user_id, referredFirstName, referredLastName, referredEmail, referredMobileNo, ref_code, created_at) 
-        VALUES(?,?,?,?,?,?,NOW())`,
+            VALUES(?,?,?,?,?,?,CONVERT_TZ(NOW(), '+00:00', '+05:30'))`,
       [
         userId,
         referredFirstName,
@@ -78,20 +83,20 @@ const sendReferralEmail = async (req, res) => {
       to: referredEmail,
       subject: "Join Finance Shastra with a Special Invitation!",
       html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-            <h2>Hi ${referredFirstName},</h2>
-            <p>${decode.name} has invited you to join Finance Shastra! Use the link below to sign up and start enjoying exclusive benefits:</p>
-            <p style="text-align: center;">
-              <a href="${referralLink}"
-                 style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #28a745; text-decoration: none; border-radius: 5px; font-size: 16px;">
-                 Sign Up Now
-              </a>
-            </p>
-            <p>If the button doesn't work, you can also sign up using the following link:</p>
-            <p><a href="${referralLink}">${referralLink}</a></p>
-            <p>Thanks,<br>Finance Shastra Team</p>
-          </div>
-        `,
+              <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                <h2>Hi ${referredFirstName},</h2>
+                <p>${decode.name} has invited you to join Finance Shastra! Use the link below to sign up and start enjoying exclusive benefits:</p>
+                <p style="text-align: center;">
+                  <a href="${referralLink}"
+                    style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #28a745; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                    Sign Up Now
+                  </a>
+                </p>
+                <p>If the button doesn't work, you can also sign up using the following link:</p>
+                <p><a href="${referralLink}">${referralLink}</a></p>
+                <p>Thanks,<br>Finance Shastra Team</p>
+              </div>
+            `,
     });
 
     //Response
@@ -146,5 +151,7 @@ const getAllReferrrals = async (req, res) => {
     });
   }
 };
+
+//----------------------------------------------------------------------------------------------------------------------
 
 module.exports = { sendReferralEmail, getAllReferrrals };
