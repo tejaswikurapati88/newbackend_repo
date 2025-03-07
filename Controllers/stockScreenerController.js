@@ -85,8 +85,8 @@ const stockIndex = async (req, res) => {
 }
 
 const stockCalender = async (req, res) => {
-    try{
-        if (!dbPool){
+    try {
+        if (!dbPool) {
             return res.status(500).json({error: 'Database connection is not established'})
         }
         const stockslistQuery = `
@@ -97,7 +97,7 @@ const stockCalender = async (req, res) => {
                 market_cap_cr,
                 High_52W_INR,
                 Low_52W_INR,
-                event_date,
+                DATE_FORMAT(event_date, '%Y-%m-%d') AS event_date,
                 pe,
                 clarification
             FROM dummy_stocks_list
@@ -105,7 +105,7 @@ const stockCalender = async (req, res) => {
         `;
         const [stockslist] = await dbPool.query(stockslistQuery)
         res.status(200).json(stockslist);
-    } catch(e){
+    } catch(e) {
         console.error('Error in fetching details :', e);
         res.status(500).json({ error: 'Internal Server Error' });
     }

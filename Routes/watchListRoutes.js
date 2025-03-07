@@ -7,7 +7,12 @@ const {
   createWatchlist,
   renameExistingWatchlist,
   deleteWatchlist,
-  getAssetForWatchlist
+  getAssetForWatchlist,
+
+  getMutualWatchlists,
+  createMutualWatchlist,
+  renameMutualWatchlist,
+  deleteMutualWatchlist
 } = require("../Controllers/watchListController");
 
 const router = express.Router();
@@ -28,5 +33,16 @@ router.post("/addStockToWatchklist", addToWatchlist);
 router.delete("/removeStockFromWatchlist", removeStockFromWatchlist);
 
 router.get('/getWatchlistAssets', getAssetForWatchlist)
+
+
+//Routes for mutuals
+
+router.get("/getMutualWatchlists", getMutualWatchlists);
+
+router.post("/CreateMutualWatchList", createMutualWatchlist);
+
+router.put("/renameMutualWatchlist", renameMutualWatchlist);
+
+router.delete("/deleteMutualWatchlist", deleteMutualWatchlist);
 
 module.exports = router;
