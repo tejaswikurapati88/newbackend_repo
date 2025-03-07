@@ -10,7 +10,10 @@ const {
   getAssetForWatchlist,
 
   getMutualWatchlists,
+  getMutualsAssets,
   createMutualWatchlist,
+  addMutualToWatchlist,
+  removeMutualFromWatchlist,
   renameMutualWatchlist,
   deleteMutualWatchlist
 } = require("../Controllers/watchListController");
@@ -39,7 +42,13 @@ router.get('/getWatchlistAssets', getAssetForWatchlist)
 
 router.get("/getMutualWatchlists", getMutualWatchlists);
 
+router.get('/getmutualsAssets', getMutualsAssets)
+
 router.post("/CreateMutualWatchList", createMutualWatchlist);
+
+router.post('/addMutualToWatchklist', addMutualToWatchlist)
+
+router.delete('/removeMutualFromWatchlist', removeMutualFromWatchlist)
 
 router.put("/renameMutualWatchlist", renameMutualWatchlist);
 
