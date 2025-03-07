@@ -139,11 +139,11 @@ const userSignin = async (req, res) => {
     if (user.length === 0) {
       return res.status(404).json({ message: "Invalid User. Please SignUp!" });
     }
-    if (user[0].isVerified === 0) {
+    /*if (user[0].isVerified === 0) {
       return res
         .status(401)
         .json({ message: "Unverified User. Please check your mail!" });
-    }
+    }*/
 
     // Verify password
     const compare = await bcrypt.compare(password, user[0].password);
@@ -316,13 +316,7 @@ const verifyEmail = async (req, res) => {
     const userDetails = user[0];
 
     // Check token expiry
-    if (new Date(userDetails.tokenExpiry) < Date.now()) {
-      const query = `
-            Delete * from  userstable where user_id = ?;
-            `;
-      await dbPool.query(query, [userDetails.user_id]);
-      res.status(200).json({ message: "unverified user deleted" });
-    } else {
+    
       const updateQuery = `
             UPDATE userstable 
             SET isVerified = 1, verificationToken = NULL, tokenExpiry = NULL 
@@ -331,7 +325,7 @@ const verifyEmail = async (req, res) => {
       await dbPool.query(updateQuery, [userDetails.user_id]);
 
       res.status(200).json({ message: "Email verified successfully!" });
-    }
+    
 
     // Update user as verified
   } catch (error) {
