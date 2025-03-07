@@ -19,6 +19,7 @@ const iconsRouter = require('./Routes/iconsRoutes')
 const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
 const searchRouter = require("./Routes/searchRoutes");
 const watchlistRouter = require("./Routes/watchListRoutes")
+const referralRouter=require("./Routes/userReferralRoutes");
 
 const app = express();
 
@@ -42,6 +43,8 @@ const PORT = 3000;
 
 app.use("/users", userRouter);
 
+app.use("/referrals",referralRouter);
+
 app.use("/userPayment", paymentRouter);
 
 app.use("/stocksScreener", stockScreenerRouter);
@@ -53,16 +56,19 @@ app.use("/plan", planRouter);
 app.use("/search", searchRouter);
 
 app.use("/userdetails", userDetailsRouter);
+
 app.use("/search", searchRouter);
 
 app.use("/myportfolio", portfolioRouter);
 
 app.use('/riskanalysis', riskAnalysisRouter)
+
 app.use('/orders', ordersRouter)
 
 app.use('/icons', iconsRouter)
 
 app.use("/uploads", express.static("uploads"));
+
 app.use("/mutualFunds", mutualFundsRouter);
 
 app.use("/Watchlist", watchlistRouter);

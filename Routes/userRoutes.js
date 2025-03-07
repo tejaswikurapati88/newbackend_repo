@@ -11,8 +11,6 @@ const {
   resetPassword,
   deviceInfo,
   endSession,
-  // sendReferralEmail,
-  // registerReferedUser,
 } = require("../Controllers/userController");
 
 const router = express.Router();
@@ -27,10 +25,6 @@ router.post("/signin", userSignin);
 
 //route for getting device information
 router.get("/devices", deviceInfo);
-
-//route for referral
-// router.post("/send-referral-email", sendReferralEmail);
-// router.post("/register-referred-user", registerReferedUser);
 
 //route for end session
 router.post("/end-session", endSession);
