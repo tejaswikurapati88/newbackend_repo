@@ -7,6 +7,9 @@ const addUserDetails =  async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
+        const token= req.headers.authorization?.split(" ")[1];
+            const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+            const userId = (decoded.userId)
         const {firstName, lastName, dob, gender, email, 
             phoneNumber, country, state, city, occupation, pincode, industry, income, address, ageGroup}= req.body
         if (firstName === ""|| dob=== ""|| gender==="" || email==='' || phoneNumber==="" || country=== ""||
@@ -52,15 +55,32 @@ const getUserDetails= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
+        const token= req.headers.authorization?.split(" ")[1];
+            const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+            const email = (decoded.email)
+        console.log(email)
+        const getQuery=`SELECT * from user_details where email = '${email}';`
+        const [userdetails]= await dbPool.query(getQuery)
+        res.status(200).json(userdetails)
+    }catch(e){
+        console.error('Error fetching users:', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+/*const getUserDetails= async (req, res)=>{
+    try{
+        if (!dbPool){
+            return res.status(500).json({error: 'Database connection is not established'})
+        }
         const email= req.query.email
         const getQuery=`SELECT * from user_details where email = '${email}';`
         const [userdetails]= await dbPool.query(getQuery)
         res.status(200).json(userdetails)
     }catch(e){
-        console.error('Error fetching users:', error);
+        console.error('Error fetching users:', e);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-}
+}*/
 
 const updateUserInvestment=async (req, res)=>{
     try{
