@@ -9,6 +9,7 @@ const getOrders=async (req, res)=>{
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
         const userId = (decoded.userId)
+        console.log(userId)
         const selectQuery = `SELECT * FROM orders where user_id = ${userId}`;
         const [orders] = await dbPool.query(selectQuery); 
         res.status(200).json(orders);

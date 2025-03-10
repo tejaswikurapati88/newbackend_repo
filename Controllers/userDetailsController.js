@@ -9,7 +9,8 @@ const addUserDetails =  async (req, res)=>{
         }
         const token= req.headers.authorization?.split(" ")[1];
             const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
-            const userId = (decoded.userId)
+            const emaillocal = (decoded.email)
+            const useridlocal= decoded.userId
         const {firstName, lastName, dob, gender, email, 
             phoneNumber, country, state, city, occupation, pincode, industry, income, address, ageGroup}= req.body
         if (firstName === ""|| dob=== ""|| gender==="" || email==='' || phoneNumber==="" || country=== ""||
@@ -17,9 +18,9 @@ const addUserDetails =  async (req, res)=>{
                 console.log('fill all details')
             return res.status(400).json({message: "All the details should be provided"})
         }else{
-            const usertablequery= `select * from userstable where email = '${email}'`
+            /**const usertablequery= `select * from userstable where email = '${email}'`
             const [usertable] = await dbPool.query(usertablequery)
-            const user_idtable= (usertable[0].user_id)
+            const user_idtable= (usertable[0].user_id)*/
             const updateQuery = `
             UPDATE user_details 
             SET first_name = '${firstName}',
@@ -36,10 +37,10 @@ const addUserDetails =  async (req, res)=>{
             address = '${address}',
             age_group = '${ageGroup}',
             income = '${income}',
-            user_id= ${user_idtable},
+            user_id= ${useridlocal},
             updated_date= NOW()
 
-            where email = '${email}';
+            where email = '${emaillocal}';
             `
             await dbPool.query(updateQuery)
             res.status(200).json({ message: 'User details updated successfully' });
