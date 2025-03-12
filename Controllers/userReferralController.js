@@ -38,7 +38,6 @@ const sendReferralEmail = async (req, res) => {
     //getting user_id from token
     const userId = decode.userId;
 
-
     // Check if the referred email and movile no already exists]
     const [existingReferrals] = await dbPool.query(
       `SELECT * FROM referrals WHERE referredEmail = ? OR referredMobileNo = ?`,
@@ -127,7 +126,7 @@ const getAllReferrrals = async (req, res) => {
     const userId = decode.userId;
 
     const [referals] = await dbPool.query(
-      `SELECT * FROM referrals WHERE user_id = ?`,
+      `SELECT ref_id , referredFirstName , referredLastName ,referredEmail ,referredMobileNo , created_at,subscribe,register,total_earning FROM referrals WHERE user_id = ?`,
       [userId]
     );
 

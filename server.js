@@ -45,6 +45,8 @@ app.use("/users", userRouter);
 
 app.use("/referrals",referralRouter);
 
+app.use("/search",searchRouter)
+
 app.use("/userPayment", paymentRouter);
 
 app.use("/stocksScreener", stockScreenerRouter);
