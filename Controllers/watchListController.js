@@ -443,7 +443,7 @@ const getMutualWatchlists = async (req, res) => {
         name
       FROM mutual_watchlists 
       WHERE user_id = ?
-      ORDER BY created_at DESC;
+      ORDER BY created_at ASC;
     `;
 
     const [result] = await dbPool.query(query, [decoded.userId]);

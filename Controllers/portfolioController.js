@@ -224,29 +224,15 @@ const addmutualFundToPortfolio = async (req, res) => {
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.SECRET_KEY);
-            
         } catch (err) {
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
         if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
 
-        const { type, scheme, nav_date, nav, amount, quantity, dividend = null, notes = null, sip_amount, sip_start_date,
-            sip_end_date, frequency, no_of_installments } = req.body;
-
-        // Validate input
-        if (!scheme || !quantity || !nav || !type) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        if (isNaN(quantity) || quantity <= 0 || isNaN(nav) || nav <= 0) {
-            return res.status(400).json({ error: 'Invalid quantity or NAV' });
-        }
-
-        if (!['Buy', 'Sell'].includes(type)) {
-            return res.status(400).json({ error: 'Invalid transaction type' });
-        }
-
+        // Handle array of transactions from frontend
+        const transactions = Array.isArray(req.body) ? req.body : [req.body];
+        
         const connection = await dbPool.getConnection();
         try {
             await connection.beginTransaction();
@@ -256,7 +242,6 @@ const addmutualFundToPortfolio = async (req, res) => {
                 `SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
                 [decoded.userId]
             );
-            console.log(portfolioRows[0])
 
             let portfolio_id = portfolioRows.length ? portfolioRows[0].portfolio_id : null;
 
@@ -268,108 +253,137 @@ const addmutualFundToPortfolio = async (req, res) => {
                 portfolio_id = newPortfolio.insertId;
             }
 
-            // Check if the mutual fund already exists in the user's holdings
-            const [existingFund] = await connection.query(
-                `SELECT id, buy_quantity, sell_quantity, amount, buy_price, sell_price FROM mutualfund_holdings 
-                 WHERE portfolio_id = ? AND scheme = ?`,
-                [portfolio_id, scheme]
-            );
+            // Process each transaction
+            for (const transaction of transactions) {
+                const { 
+                    type, 
+                    scheme_name, // Using scheme_name from frontend
+                    date, // Using date instead of nav_date
+                    nav, 
+                    amount, 
+                    quantity, 
+                    dividend = "Invest", // Default from frontend
+                    notes = "", 
+                    // SIP related fields if present
+                    sip_amount, 
+                    sip_start_date,
+                    sip_end_date, 
+                    frequency, 
+                    no_of_installments 
+                } = transaction;
 
-            if (existingFund.length > 0) {
-                // Fund already exists in holdings
-                let existingBuyQuantity = parseFloat(existingFund[0].buy_quantity);
-                let existingBuyNAV = parseFloat(existingFund[0].buy_price);
-                let existingSellQuantity = parseFloat(existingFund[0].sell_quantity)
-                //let currentAmount = parseFloat(existingFund[0].amount);
-                let existingSellNAV = parseFloat(existingFund[0].sell_price);
+                // Skip empty transactions
+                if (!scheme_name || !quantity || !nav || !type) {
+                    continue;
+                }
 
-                if (type === 'Buy') {
-                    // Calculate new average NAV and updated quantity
-                    const totalInvestment = (existingBuyQuantity * existingBuyNAV) + (quantity*nav);
-                    const newBuyQuantity = existingBuyQuantity + quantity;
-                    const newAverageNAV = totalInvestment / newBuyQuantity;
+                if (isNaN(quantity) || quantity <= 0 || isNaN(nav) || nav <= 0) {
+                    await connection.rollback();
+                    return res.status(400).json({ error: 'Invalid quantity or NAV' });
+                }
 
-                    await connection.query(
-                        `UPDATE mutualfund_holdings 
-                         SET buy_quantity = ?, buy_price = ?, amount = ?, notes = ? 
-                         WHERE portfolio_id = ? AND scheme = ?`,
-                        [newBuyQuantity, newAverageNAV, newBuyQuantity*newAverageNAV, notes, portfolio_id, scheme]
-                    );
+                if (!['Buy', 'Sell'].includes(type)) {
+                    await connection.rollback();
+                    return res.status(400).json({ error: 'Invalid transaction type' });
+                }
 
-                } else if (type === 'Sell') {
-                    // Ensure the user has enough units to sell
-                    if (quantity > existingBuyQuantity) {
-                        await connection.rollback();
-                        return res.status(400).json({ error: 'Cannot sell more than available quantity' });
-                    }
+                // Check if the mutual fund already exists in the user's holdings
+                const [existingFund] = await connection.query(
+                    `SELECT id, buy_quantity, sell_quantity, amount, buy_price, sell_price FROM mutualfund_holdings 
+                     WHERE portfolio_id = ? AND scheme = ?`,
+                    [portfolio_id, scheme_name]
+                );
 
-                    const newBuyQuantity = existingBuyQuantity - quantity;
-                    const newSellQuantity = existingSellQuantity + quantity;
-                    const totalSellAmount = (existingSellQuantity * existingSellNAV) + (quantity*nav);
-                    const newAvgSellPrice = newBuyQuantity > 0 ?  (totalSellAmount/newSellQuantity) : nav;
+                if (existingFund.length > 0) {
+                    // Fund already exists in holdings
+                    let existingBuyQuantity = parseFloat(existingFund[0].buy_quantity);
+                    let existingBuyNAV = parseFloat(existingFund[0].buy_price);
+                    let existingSellQuantity = parseFloat(existingFund[0].sell_quantity);
+                    let existingSellNAV = parseFloat(existingFund[0].sell_price);
 
-                    if (newBuyQuantity === 0) {
-                        // If selling all units, delete the holding
-                        await connection.query(
-                            `DELETE FROM mutualfund_holdings WHERE portfolio_id = ? AND scheme = ?`,
-                            [portfolio_id, scheme]
-                        );
-                    } else {
-                        // Otherwise, update the holding
+                    if (type === 'Buy') {
+                        // Calculate new average NAV and updated quantity
+                        const totalInvestment = (existingBuyQuantity * existingBuyNAV) + (quantity * nav);
+                        const newBuyQuantity = existingBuyQuantity + parseFloat(quantity);
+                        const newAverageNAV = totalInvestment / newBuyQuantity;
+
                         await connection.query(
                             `UPDATE mutualfund_holdings 
-                             SET buy_quantity = ?, sell_quantity = ?, sell_price = ?, amount = ?, notes = ? 
-                             WHERE portfolio_id = ?`,
-                            [newBuyQuantity, newSellQuantity, newAvgSellPrice, newBuyQuantity*existingBuyNAV, notes, portfolio_id]
+                             SET buy_quantity = ?, buy_price = ?, amount = ?, notes = ? 
+                             WHERE portfolio_id = ? AND scheme = ?`,
+                            [newBuyQuantity, newAverageNAV, newBuyQuantity * newAverageNAV, notes, portfolio_id, scheme_name]
                         );
+
+                    } else if (type === 'Sell') {
+                        // Ensure the user has enough units to sell
+                        if (quantity > existingBuyQuantity) {
+                            await connection.rollback();
+                            return res.status(400).json({ error: 'Cannot sell more than available quantity' });
+                        }
+
+                        const newBuyQuantity = existingBuyQuantity - parseFloat(quantity);
+                        const newSellQuantity = existingSellQuantity + parseFloat(quantity);
+                        const totalSellAmount = (existingSellQuantity * existingSellNAV) + (quantity * nav);
+                        const newAvgSellPrice = newSellQuantity > 0 ? (totalSellAmount / newSellQuantity) : nav;
+
+                        if (newBuyQuantity === 0) {
+                            // If selling all units, delete the holding
+                            await connection.query(
+                                `DELETE FROM mutualfund_holdings WHERE portfolio_id = ? AND scheme = ?`,
+                                [portfolio_id, scheme_name]
+                            );
+                        } else {
+                            // Otherwise, update the holding
+                            await connection.query(
+                                `UPDATE mutualfund_holdings 
+                                 SET buy_quantity = ?, sell_quantity = ?, sell_price = ?, amount = ?, notes = ? 
+                                 WHERE portfolio_id = ? AND scheme = ?`,
+                                [newBuyQuantity, newSellQuantity, newAvgSellPrice, newBuyQuantity * existingBuyNAV, notes, portfolio_id, scheme_name]
+                            );
+                        }
                     }
-                }
-            } else {
-
-                const amount = quantity*nav
-
-                const insertQuery = `
-                    INSERT INTO mutualfund_holdings (portfolio_id, type, scheme, nav_date, buy_price, buy_quantity, amount, dividend, notes, sell_quantity, sell_price
-                    ${sip_amount ? ', sip_amount' : ''} 
-                    ${sip_start_date ? ', sip_start_date' : ''} 
-                    ${sip_end_date ? ', sip_end_date' : ''} 
-                    ${frequency ? ', frequency' : ''} 
-                    ${no_of_installments ? ', no_of_installments' : ''}) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? 
-                    ${sip_amount ? ', ?' : ''} 
-                    ${sip_start_date ? ', ?' : ''} 
-                    ${sip_end_date ? ', ?' : ''} 
-                    ${frequency ? ', ?' : ''} 
-                    ${no_of_installments ? ', ?' : ''});
-                `;
-
-                const values = [portfolio_id, type, scheme, nav_date, nav, quantity, amount, dividend, notes, 0, 0];
-                if (sip_amount) values.push(sip_amount);
-                if (sip_start_date) values.push(sip_start_date);
-                if (sip_end_date) values.push(sip_end_date);
-                if (frequency) values.push(frequency);
-                if (no_of_installments) values.push(no_of_installments);
-
-                await connection.query(insertQuery, values);
-
-                /*
-                // If mutual fund doesn't exist, insert a new record for a "Buy" transaction
-                if (type === 'Buy') {
-                    await connection.query(
-                        `INSERT INTO mutualfund_holdings 
-                         (portfolio_id, type, scheme, nav_date, buy_price, amount, buy_quantity, sell_quantity, dividend, notes) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [portfolio_id, type, scheme, nav_date, nav, amount, quantity, 0, dividend, notes]
-                    );
                 } else {
-                    // Selling without prior holdings is not allowed
-                    await connection.rollback();
-                    return res.status(400).json({ error: 'Cannot sell a mutual fund that is not owned' });
-                }*/
+                    // For new holdings
+                    const calculatedAmount = parseFloat(quantity) * parseFloat(nav);
+
+                    const insertQuery = `
+                        INSERT INTO mutualfund_holdings (
+                            portfolio_id, type, scheme, nav_date, buy_price, buy_quantity, 
+                            amount, dividend, notes, sell_quantity, sell_price
+                            ${sip_amount ? ', sip_amount' : ''} 
+                            ${sip_start_date ? ', sip_start_date' : ''} 
+                            ${sip_end_date ? ', sip_end_date' : ''} 
+                            ${frequency ? ', frequency' : ''} 
+                            ${no_of_installments ? ', no_of_installments' : ''}
+                        ) VALUES (
+                            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                            ${sip_amount ? ', ?' : ''} 
+                            ${sip_start_date ? ', ?' : ''} 
+                            ${sip_end_date ? ', ?' : ''} 
+                            ${frequency ? ', ?' : ''} 
+                            ${no_of_installments ? ', ?' : ''}
+                        )`;
+
+                    const values = [
+                        portfolio_id, type, scheme_name, date, nav, quantity, 
+                        calculatedAmount, dividend, notes, 0, 0
+                    ];
+                    
+                    if (sip_amount) values.push(sip_amount);
+                    if (sip_start_date) values.push(sip_start_date);
+                    if (sip_end_date) values.push(sip_end_date);
+                    if (frequency) values.push(frequency);
+                    if (no_of_installments) values.push(no_of_installments);
+
+                    await connection.query(insertQuery, values);
+                }
             }
 
             await connection.commit();
-            return res.status(201).json({ message: 'Mutual fund transaction processed successfully' });
+            return res.status(201).json({ 
+                message: 'Mutual fund transaction(s) processed successfully',
+                success: true
+            });
             
         } catch (error) {
             await connection.rollback();
@@ -383,6 +397,80 @@ const addmutualFundToPortfolio = async (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+// DELETE a mutual fund transaction
+const deleteMutualFundTransaction = async (req, res) => {
+    try {
+      // Extract and verify JWT token
+      const token = req.headers.authorization?.split(" ")[1];
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+  
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.SECRET_KEY);
+      } catch (err) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+  
+      if (!dbPool) return res.status(500).json({ error: "Database connection is not established" });
+  
+      const scheme = req.params.scheme;
+      const userId = decoded.userId
+      const connection = await dbPool.getConnection();
+  
+      try {
+        await connection.beginTransaction();
+  
+        // Check if the transaction exists
+        const [existingTransaction] = await connection.query(
+          `SELECT * FROM mutualfund_holdings WHERE user_id = ?`,
+          [userId]
+        );
+  
+        if (existingTransaction.length === 0) {
+          await connection.rollback();
+          return res.status(404).json({ error: "Transaction not found" });
+        }
+  
+        const transaction = existingTransaction[0];
+  
+        // Get the user's portfolio ID
+        const [portfolioRows] = await connection.query(
+          `SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
+          [decoded.userId]
+        );
+  
+        if (portfolioRows.length === 0) {
+          await connection.rollback();
+          return res.status(404).json({ error: "Portfolio not found" });
+        }
+  
+        const portfolio_id = portfolioRows[0].portfolio_id;
+  
+        // Ensure the transaction belongs to the user
+        if (transaction.portfolio_id !== portfolio_id) {
+          await connection.rollback();
+          return res.status(403).json({ error: "Unauthorized access to transaction" });
+        }
+  
+        // Delete the transaction
+        await connection.query(`DELETE FROM mutualfund_holdings WHERE id = ?`, [scheme]);
+  
+        await connection.commit();
+        return res.status(200).json({ message: "Transaction deleted successfully", success: true });
+  
+      } catch (error) {
+        await connection.rollback();
+        console.error("Error deleting mutual fund transaction:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
 
 const allocationChart = async (req, res) => {
     try {
@@ -642,6 +730,7 @@ module.exports = {
     getPortfolioSummary,
     addStockToPortfolio,
     addmutualFundToPortfolio,
+    deleteMutualFundTransaction,
     allocationChart, 
     portfolioStocks,
     stocksTransaction,

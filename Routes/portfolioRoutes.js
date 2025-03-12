@@ -1,6 +1,6 @@
 const express = require('express')
 const router =express.Router()
-const { getPortfolioSummary, addStockToPortfolio, addmutualFundToPortfolio, allocationChart, portfolioStocks, stocksTransaction, mutualsTransaction } = require('../Controllers/portfolioController')
+const { getPortfolioSummary, addStockToPortfolio, addmutualFundToPortfolio, deleteMutualFundTransaction, allocationChart, portfolioStocks, stocksTransaction, mutualsTransaction } = require('../Controllers/portfolioController')
 
 
 router.get('/dashboard', getPortfolioSummary )
@@ -10,6 +10,8 @@ router.get('/allocationChart', allocationChart )
 router.post('/addStock', addStockToPortfolio)
 
 router.post('/addMutuals', addmutualFundToPortfolio)
+
+router.delete("/DeleteMutualTransactions/:scheme", deleteMutualFundTransaction);
 
 router.get('/portfoliostocks', portfolioStocks)
 
