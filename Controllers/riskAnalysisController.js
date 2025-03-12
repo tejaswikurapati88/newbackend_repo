@@ -2,7 +2,7 @@ const dbPool = require('./dbPool')
 const jwt = require('jsonwebtoken')
 
 
-const addriskAnalysis= async(req, res)=>async (req, res)=>{
+const addriskAnalysis= async(req, res)=>{
     try{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
@@ -150,7 +150,7 @@ const getriskAnalysis= async (req, res)=> {
         const userId = (decoded.userId)
         const getQuery=`SELECT * from risk_analysis where user_id = ${userId};`
         const [data]= await dbPool.query(getQuery)
-        res.status(200).json(data.length)
+        res.status(200).json(data)
            
     }catch(e){
         console.log('Error fetching risk analysis:', e);

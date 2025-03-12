@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
     "name": "Parnika Bala",
-    "email": "parnineli@gmail.com",
+    "email": "tejaswikurapati88@gmail.com",
     "password": "Parni@Teja123"
 }
 
@@ -47,7 +47,7 @@ Content-Type: application/json
 }-->
 ###
 
-DELETE http://localhost:3000/users/deleteuser/2
+DELETE http://localhost:3000/users/deleteuser/62
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 
 
@@ -203,7 +203,7 @@ Content-Type: application/json
 }
 
 ### get user details
-GET http://localhost:3000/userdetails?email=tejaswik@gmail.com
+GET http://localhost:3000/userdetails
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQwLCJuYW1lIjoiUGFybmlrYSBCYWxhIiwiZW1haWwiOiJwYXJuaWthbmVlbGlAZ21haWwuY29tIiwiaWF0IjoxNzM5MDEwODc2LCJleHAiOjE3MzkwMTQ0NzZ9.sEENbe-U25M8dwneynYV_pafMUVmsQE2v1gGRb-DdAA
 
 
@@ -242,7 +242,7 @@ Content-Type: application/json
 
 ### get risk analysis
 GET http://localhost:3000/riskanalysis
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJuYW1lIjoidGVqYXN3aSBrdXJhcGF0aSIsImVtYWlsIjoidGVqYXN3aWt1cmFwYXRpODhAZ21haWwuY29tIiwiaWF0IjoxNzM5MTY5NjcxLCJleHAiOjE3MzkxNzMyNzF9.aqiGVmgrsuGmKqCL1FmT89ZWrY6sRvwQlTrKxC9TXwg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjExNCwibmFtZSI6IlBhcm5pa2EgQmFsYSIsImVtYWlsIjoidGVqYXN3aWt1cmFwYXRpODhAZ21haWwuY29tIiwiaWF0IjoxNzQxNDAzODQxLCJleHAiOjE3NDE0NDcwNDF9.u2jQn3R3Z_ABcS4n4-Y1bggYjjPGdL9HiPRzvwq-q8s
 
 ###
 PUT http://localhost:3000/riskanalysis/updaterisk
