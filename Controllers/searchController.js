@@ -99,7 +99,7 @@ const dbPool = require("./dbPool");
 //route for sending all data for redux store
 const getAllData = async (req, res) => {
   try {
-    const [stockRows] = await dbPool.query(`SELECT * FROM dummy_stocks_list`);
+    const [stockRows] = await dbPool.query(`SELECT * FROM NSE_Active_Stocks`);
     const [fundRows] = await dbPool.query(
       `SELECT * FROM mutualfunds_directplan_details`
     );
