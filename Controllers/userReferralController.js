@@ -14,7 +14,7 @@ const generateReferralCode = (email) => {
 
 // Function to generate a referral link
 const generateReferralLink = (referralCode) => {
-  return `${process.env.RENDER_URL}/register?referralCode=${referralCode}`;
+  return `${process.env.CLIENT_URL}/register?referralCode=${referralCode}`;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
