@@ -64,7 +64,7 @@ const createUser = async (req, res) => {
       if (userExists.length === 0) {
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
-        const verificationLink = `https://newbackend-repo.onrender.com/users/verifyEmail?token=${verificationToken}`;
+        const verificationLink = `${process.env.RENDER_URL}/users/verifyEmail?token=${verificationToken}`;
         const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const hashedPass = await bcrypt.hash(password, 10);
@@ -395,7 +395,7 @@ const verifyEmail = async (req, res) => {
     );
 
     if (updateResult[0].affectedRows > 0) {
-      return res.redirect("https://prod-frontend-psi.vercel.app/login");
+      return res.redirect(`${process.env.FRONTEND_URL}`);
     } else {
       return res
         .status(500)
