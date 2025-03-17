@@ -215,6 +215,72 @@ const addStockToPortfolio = async (req, res) => {
     }
 };
 
+const deleteStockTransaction = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+
+        if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
+
+        const { stock_name } = req.params;
+        if (!stock_name) return res.status(400).json({ error: 'Stock name is required' });
+        
+        const connection = await dbPool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Get Portfolio ID
+            const [portfolioRows] = await connection.query(
+                `SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
+                [decoded.userId]
+            );
+
+            if (portfolioRows.length === 0) {
+                await connection.rollback();
+                return res.status(404).json({ error: 'Portfolio not found' });
+            }
+
+            const portfolio_id = portfolioRows[0].portfolio_id;
+            // Check if stock exists in holdings
+            const [existingStock] = await connection.query(
+                `SELECT * FROM holdings WHERE portfolio_id = ? AND stock_name = ?`,
+                [portfolio_id, stock_name]
+            );
+
+            if (existingStock.length === 0) {
+                await connection.rollback();
+                return res.status(404).json({ error: 'Stock not found in portfolio' });
+            }
+
+            // Delete the stock transaction
+            await connection.query(
+                `DELETE FROM holdings WHERE portfolio_id = ? AND stock_name = ?`,
+                [portfolio_id, stock_name]
+            );
+
+            await connection.commit();
+            return res.status(200).json({ message: 'Stock transaction deleted successfully' });
+
+        } catch (error) {
+            await connection.rollback();
+            console.error('Error deleting stock transaction:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
 const addmutualFundToPortfolio = async (req, res) => {
     try {
         // Extract and verify JWT token
@@ -401,76 +467,67 @@ const addmutualFundToPortfolio = async (req, res) => {
 // DELETE a mutual fund transaction
 const deleteMutualFundTransaction = async (req, res) => {
     try {
-      // Extract and verify JWT token
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) return res.status(401).json({ error: "Unauthorized" });
-  
-      let decoded;
-      try {
-        decoded = jwt.verify(token, process.env.SECRET_KEY);
-      } catch (err) {
-        return res.status(401).json({ error: "Invalid or expired token" });
-      }
-  
-      if (!dbPool) return res.status(500).json({ error: "Database connection is not established" });
-  
-      const scheme = req.params.scheme;
-      const userId = decoded.userId
-      const connection = await dbPool.getConnection();
-  
-      try {
-        await connection.beginTransaction();
-  
-        // Check if the transaction exists
-        const [existingTransaction] = await connection.query(
-          `SELECT * FROM mutualfund_holdings WHERE user_id = ?`,
-          [userId]
-        );
-  
-        if (existingTransaction.length === 0) {
-          await connection.rollback();
-          return res.status(404).json({ error: "Transaction not found" });
+        // Extract and verify JWT token
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (err) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
         }
-  
-        const transaction = existingTransaction[0];
-  
-        // Get the user's portfolio ID
-        const [portfolioRows] = await connection.query(
-          `SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
-          [decoded.userId]
-        );
-  
-        if (portfolioRows.length === 0) {
-          await connection.rollback();
-          return res.status(404).json({ error: "Portfolio not found" });
+
+        if (!dbPool) return res.status(500).json({ error: 'Database connection is not established' });
+
+        // Extract scheme name from request params
+        const { scheme } = req.params;
+        if (!scheme) return res.status(400).json({ error: 'Mutual fund scheme is required' });
+
+        const connection = await dbPool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Check if the mutual fund transaction exists
+            const [existingFund] = await connection.query(
+                `SELECT scheme FROM mutualfund_holdings 
+                 WHERE portfolio_id = (SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1)
+                 AND scheme = ?`,
+                [decoded.userId, scheme]
+            );
+
+            if (existingFund.length === 0) {
+                await connection.rollback();
+                return res.status(404).json({ error: 'Mutual fund transaction not found' });
+            }
+
+            // Delete the transaction
+            await connection.query(
+                `DELETE FROM mutualfund_holdings 
+                 WHERE portfolio_id = (SELECT portfolio_id FROM portfolios WHERE user_id = ? ORDER BY created_at DESC LIMIT 1)
+                 AND scheme = ?`,
+                [decoded.userId, scheme]
+            );
+
+            await connection.commit();
+            return res.status(200).json({ 
+                message: 'Mutual fund transaction deleted successfully',
+                success: true
+            });
+
+        } catch (error) {
+            await connection.rollback();
+            console.error('Error deleting mutual fund transaction:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        } finally {
+            connection.release();
         }
-  
-        const portfolio_id = portfolioRows[0].portfolio_id;
-  
-        // Ensure the transaction belongs to the user
-        if (transaction.portfolio_id !== portfolio_id) {
-          await connection.rollback();
-          return res.status(403).json({ error: "Unauthorized access to transaction" });
-        }
-  
-        // Delete the transaction
-        await connection.query(`DELETE FROM mutualfund_holdings WHERE id = ?`, [scheme]);
-  
-        await connection.commit();
-        return res.status(200).json({ message: "Transaction deleted successfully", success: true });
-  
-      } catch (error) {
-        await connection.rollback();
-        console.error("Error deleting mutual fund transaction:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
-      } finally {
-        connection.release();
-      }
     } catch (error) {
-      console.error("Error:", error);
-      return res.status(500).json({ error: "Internal Server Error" });
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
-  };
+};
+
 
 const allocationChart = async (req, res) => {
     try {
@@ -729,6 +786,7 @@ const mutualsTransaction = async (req, res) => {
 module.exports = {
     getPortfolioSummary,
     addStockToPortfolio,
+    deleteStockTransaction,
     addmutualFundToPortfolio,
     deleteMutualFundTransaction,
     allocationChart, 
