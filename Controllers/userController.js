@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const getDeviceInfo = require("./deviceTracker");
-
+const userpermissionController = require("./notificationpermissionsController");
 // get Users Table
 const getusers = async (req, res) => {
   try {
@@ -64,7 +64,7 @@ const createUser = async (req, res) => {
       if (userExists.length === 0) {
         const verificationToken = crypto.randomBytes(32).toString("hex");
 
-        const verificationLink = `https://newbackend-repo.onrender.com/users/verifyEmail?token=${verificationToken}`;
+        const verificationLink = `${process.env.RENDER_URL}/users/verifyEmail?token=${verificationToken}`;
         const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const hashedPass = await bcrypt.hash(password, 10);
@@ -90,7 +90,7 @@ const createUser = async (req, res) => {
           username,
           formattedDate,
         ]);
-        await dbPool.query(insertQuery, [
+        let userResponse = await dbPool.query(insertQuery, [
           name,
           email,
           hashedPass,
@@ -98,7 +98,8 @@ const createUser = async (req, res) => {
           tokenExpiry,
           formattedDate,
         ]);
-
+        let permissionPayload = { user_id: userResponse[0].insertId };
+        userpermissionController.storeUserNotification(permissionPayload);
         //check if a referral code was used
         if (referralCode) {
           const [updateResult] = await dbPool.query(
@@ -120,7 +121,7 @@ const createUser = async (req, res) => {
         });
 
         await transporter.sendMail({
-          from: "team@financeshastra.com",
+          from: process.env.GMAIL,
           to: email,
           subject: "Verify Your Email",
           html: `
@@ -155,8 +156,7 @@ const createUser = async (req, res) => {
 
 const userSignin = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
+    const { email, password, fcmToken } = req.body;
     // Basic validations...
     if (!email)
       return res.status(400).json({ message: "Please enter Email Address" });
@@ -190,8 +190,8 @@ const userSignin = async (req, res) => {
 
     // Insert device information into the database
     const insertDeviceQuery = `
-      INSERT INTO user_devices (user_id, device_name, ip_address, user_agent,login_time)
-      VALUES (?, ?, ?, ?,?)
+      INSERT INTO user_devices (user_id, device_name, ip_address, user_agent,login_time,fcm_token)
+      VALUES (?, ?, ?, ?,?,?)
     `;
     await dbPool.query(insertDeviceQuery, [
       user[0].user_id,
@@ -199,6 +199,7 @@ const userSignin = async (req, res) => {
       ipAddress,
       userAgent,
       loginTime,
+      fcmToken,
     ]);
 
     // Fetch the device_id using a query
@@ -395,7 +396,7 @@ const verifyEmail = async (req, res) => {
     );
 
     if (updateResult[0].affectedRows > 0) {
-      return res.redirect("https://prod-frontend-psi.vercel.app/login");
+      return res.redirect(`${process.env.FRONTEND_URL}`);
     } else {
       return res
         .status(500)

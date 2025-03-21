@@ -20,7 +20,8 @@ const mutualFundsRouter = require("./Routes/mutualFundsRoutes");
 const searchRouter = require("./Routes/searchRoutes");
 const watchlistRouter = require("./Routes/watchListRoutes")
 const referralRouter=require("./Routes/userReferralRoutes");
-
+const notificationRouter = require('./Routes/notificationRoutes')
+const notificationPermissionRouter = require('./Routes/notificationPermissionRoutes')
 const app = express();
 
 // Middleware
@@ -75,7 +76,9 @@ app.use("/mutualFunds", mutualFundsRouter);
 
 app.use("/Watchlist", watchlistRouter);
 
+app.use("/notifications",notificationRouter)
 
+app.use("/notificationpermissions",notificationPermissionRouter)
 
 
 const connectAndStartServer= async ()=>{

@@ -290,3 +290,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUzLCJuY
 GET http://localhost:3000/icons
 
 ###
+NOTIFICATIONS
+GET http://localhost:3000/notifications
+POST
+{
+    "user_id": 1,
+    "message": "Your investment in Future Tek IPO is confirmed.",
+    "created_at": "2025-03-12T11:15:00Z",
+    "is_read": false
+}
+PATCH (to read the notification send notificationId in query)

@@ -103,7 +103,7 @@ const deleteUserPayment = async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({error: 'Database connection is not established'})
         }
-        const deleteSQL= `Delete from user_payment_details where idElite_payment_premium_form= 3`
+        const deleteSQL= `Delete from users_payment_details where idElite_payment_premium_form= 3`
         await dbPool.query(deleteSQL)
         res.status(200).json({message: "user details deleted Successfully"})
     }catch(e){
@@ -117,7 +117,24 @@ const getUser= async (req, res)=>{
         if (!dbPool){
             return res.status(500).json({ error: 'Database connection is not established' });
         }
-        const selectQuery = 'SELECT * FROM user_payment_details';
+        const selectQuery = 'SELECT * FROM users_payment_details';
+        const [users] = await dbPool.query(selectQuery); 
+        res.json(users);
+    }catch(error){
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+const getUserToken= async (req, res)=>{
+    try{
+        if (!dbPool){
+            return res.status(500).json({ error: 'Database connection is not established' });
+        }
+        const token = req.headers.authorization?.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verifying the token
+        const user_Id = (decoded.userId)
+        const selectQuery = `SELECT * FROM users_payment_details where user_id = ${user_Id}`;
         const [users] = await dbPool.query(selectQuery); 
         res.json(users);
     }catch(error){
@@ -130,5 +147,6 @@ module.exports= {
     addUserPayment,
     deleteUserPayment,
     addUserPaymentNew,
-    getUser
+    getUser,
+    getUserToken
 }

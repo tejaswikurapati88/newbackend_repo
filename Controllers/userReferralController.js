@@ -14,8 +14,10 @@ const generateReferralCode = (email) => {
 
 // Function to generate a referral link
 const generateReferralLink = (referralCode) => {
-  return `https://newbackend-repo.onrender.com/register?referralCode=${referralCode}`;
+  return `${process.env.FRONTEND_URL}/register?referralCode=${referralCode}`;
 };
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Function to send referral email

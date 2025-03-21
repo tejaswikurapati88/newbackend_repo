@@ -14,6 +14,7 @@ const {
 } = require("../Controllers/userController");
 
 const router = express.Router();
+const bruteforcelogin = require("../middleware/suspeciouslogin");
 
 // get Users Table
 router.get("/", getusers);
@@ -21,7 +22,7 @@ router.get("/", getusers);
 router.post("/register", createUser);
 
 // Login user
-router.post("/signin", userSignin);
+router.post("/signin", bruteforcelogin.prevent, userSignin);
 
 //route for getting device information
 router.get("/devices", deviceInfo);

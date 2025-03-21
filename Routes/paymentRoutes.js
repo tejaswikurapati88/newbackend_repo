@@ -1,6 +1,6 @@
 const express = require('express')
 
-const {addUserPayment, deleteUserPayment, addUserPaymentNew, getUser} = require("../Controllers/paymentController")
+const {addUserPayment, deleteUserPayment, addUserPaymentNew, getUser, getUserToken} = require("../Controllers/paymentController")
 
 const router = express.Router()
 
@@ -14,5 +14,7 @@ router.delete('/deleteuserpatment', deleteUserPayment)
 router.post('/paymentDetails1', addUserPaymentNew)
 
 router.get('/', getUser)
+
+router.get('/usertoken', getUserToken)
 
 module.exports = router
