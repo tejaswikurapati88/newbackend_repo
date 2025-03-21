@@ -231,7 +231,9 @@ const userSignin = async (req, res) => {
       expiresIn: "12h",
     });
 
-    return res.status(200).json({ jwtToken: token, deviceId: deviceId });
+    return res
+      .status(200)
+      .json({ jwtToken: token, deviceId: deviceId, username: user[0].name });
   } catch (error) {
     console.error("Error in /user/signin:", error);
     return res

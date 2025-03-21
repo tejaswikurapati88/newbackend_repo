@@ -440,8 +440,6 @@ const getAssetForWatchlist = async (req, res) => {
         .status(400)
         .json({ error: "Missing 'watchlist_id' query parameter" });
     }
-
-    console.log("Query param:", watchlistId);
     const query = `
           SELECT wi.watchlist_id, wi.asset_symbol
           FROM watchlist_items wi
@@ -451,8 +449,6 @@ const getAssetForWatchlist = async (req, res) => {
       `;
 
     const [result] = await dbPool.query(query, [userId, watchlistId]);
-
-    console.log("Query result:", result);
     return res.status(200).json(result);
   } catch (error) {
     console.error("Error fetching assets from watchlist:", error);

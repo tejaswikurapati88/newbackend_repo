@@ -16,8 +16,6 @@ const generateReferralCode = (email) => {
 const generateReferralLink = (referralCode) => {
   return `${process.env.FRONTEND_URL}/register?referralCode=${referralCode}`;
 };
-console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-
 
 //----------------------------------------------------------------------------------------------------------------------
 // Function to send referral email
