@@ -20,7 +20,6 @@ const getusers = async (req, res) => {
     } catch (err) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
-    console.log(decoded);
     const userId = decoded.userId;
 
     if (!dbPool)
@@ -31,7 +30,6 @@ const getusers = async (req, res) => {
     const selectQuery = "SELECT * from userstable where user_id = ?";
     const [users] = await dbPool.query(selectQuery, [userId]);
     res.status(200).json(users);
-    console.log(users[0].name);
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -514,7 +512,6 @@ const GoogleSignIn = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    console.log("Verified Payload:", payload);
 
     if (!payload) {
       return res.status(401).json({ error: "Token verification failed" });
@@ -553,7 +550,6 @@ const GoogleSignIn = async (req, res) => {
         const updateUserQuery =
           "UPDATE userstable SET name = ?, google_id = ? WHERE user_id = ?";
         await dbPool.query(updateUserQuery, [name, googleUserId, userId]);
-        console.log("Existing user details updated");
       }
     } else {
       // Start transaction for inserting a new user
