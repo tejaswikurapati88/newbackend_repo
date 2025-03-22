@@ -18,5 +18,5 @@ const sendNotification = async (deviceToken, title, body, data = {}) => {
 };
 
 // Example Usage
-const deviceToken = "e7aeKLBl6rLDb19anKqhiE:APA91bE57EHtvZ9r8XlZHebRjAAqVSIljMUPVyklHao00xCXXqaLVRa_ySNfSXWWMUeoIprrBEpk4WxbFtUMXpiqIuQqPjvW3Ajbbb_z4t7AQcLOiX2EAXU";
+const deviceToken = "e7aeKLBl6rLDb19anKqhiE:eylXPY6QgcH3XyQe7aeKLBl6rLDb19anKqhiE:APA91bGDZd8ylFn5dzTGdpj7uXrqk0dt3RyoSBn8az_oX-O8z4Jm_5jiTvT1lsDlAPDIVMw3_gFux8B4EUVJjLVs1GbMBOx7_APD4gh-eylXPY6QgcH3XyQ";
 sendNotification(deviceToken, "Hello!", "This is a push notification.");
